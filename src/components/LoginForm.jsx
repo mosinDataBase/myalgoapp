@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 export default function LoginForm() {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -22,6 +23,11 @@ export default function LoginForm() {
       }
     } catch (err) {
       alert('Login failed');
+      Swal.fire({
+        icon: 'error',
+        title: 'Login failed',
+        text:  'Login failed, Please Enter correct credentials',
+    });
     }
   };
 
