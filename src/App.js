@@ -24,7 +24,7 @@ import DashboardPage from './pages/DashboardPage';
 
 const App = () => {
   return (
-    <Router>
+    <Router basename={process.env.PUBLIC_URL}>
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/otp" element={<OTPPage />} />
