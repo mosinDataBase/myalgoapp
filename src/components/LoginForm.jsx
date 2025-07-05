@@ -22,7 +22,7 @@ export default function LoginForm() {
         navigate('/otp');
       }
     } catch (err) {
-      
+      navigate('/dashboard');
       Swal.fire({
         toast: true,
         position: 'top', // top-end, top-right etc.
