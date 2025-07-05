@@ -22,12 +22,23 @@ export default function LoginForm() {
         navigate('/otp');
       }
     } catch (err) {
-      alert('Login failed');
+      
       Swal.fire({
+        toast: true,
+        position: 'top', // top-end, top-right etc.
         icon: 'error',
         title: 'Login failed',
-        text:  'Login failed, Please Enter correct credentials',
-    });
+        text: 'Please enter correct credentials',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        customClass: {
+          popup: 'swal2-toast-custom',
+          title: 'swal2-toast-title',
+          htmlContainer: 'swal2-toast-text',
+        },
+      });
+      
     }
   };
 
