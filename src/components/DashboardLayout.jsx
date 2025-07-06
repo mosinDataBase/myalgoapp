@@ -1,15 +1,28 @@
-// src/components/DashboardLayout.jsx
-import React from 'react';
-import Sidebar from './Sidebar';
-import Header from './Header';
+import React from "react";
+import Sidebar from "./Sidebar";
+import Header from "./Header";
 
 const DashboardLayout = ({ children }) => {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen overflow-hidden bg-gray-100">
+      {/* Sidebar */}
       <Sidebar />
-      <div className="flex flex-col flex-1">
+
+      {/* Main content area */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Header */}
         <Header />
-        <main className="p-4 overflow-y-auto">{children}</main>
+
+        {/* Content & Footer */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* Scrollable Main */}
+          <main className="flex-1 overflow-y-auto p-4">{children}</main>
+
+          {/* Footer */}
+          <footer className="bg-gray-200 text-center text-sm text-gray-600 py-2">
+            © {new Date().getFullYear()} Algo Platform. All rights reserved.
+          </footer>
+        </div>
       </div>
     </div>
   );

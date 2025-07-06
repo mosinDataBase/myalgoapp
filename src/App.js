@@ -1,7 +1,6 @@
 // src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
 import OTPPage from './pages/OTPPage';
 import HomePage from './pages/HomePage';
 import DashboardLayout from './components/DashboardLayout';
@@ -26,7 +25,8 @@ const App = () => {
   return (
     <Router basename={process.env.PUBLIC_URL}>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+
+        <Route path="/" element={<HomePage />} />
         <Route path="/otp" element={<OTPPage />} />
         <Route path="/home" element={<HomePage />} />
 
