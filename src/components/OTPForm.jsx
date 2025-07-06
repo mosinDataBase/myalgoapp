@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import URLS from '../config/apiUrls';
+import { showToast } from '../utils/alerts';
+import Loading from '../utils/Loading';
 
 const OTPForm = ({ mobileNumber, onSuccess }) => {
   const [otp, setOtp] = useState('');
@@ -12,7 +15,8 @@ const OTPForm = ({ mobileNumber, onSuccess }) => {
     setError('');
 
     try {
-      const res = await axios.post('http://localhost:5000/verify-otp', {
+     
+      const res = await axios.post(URLS.otpVerify, {
         mobileNumber,
         otp
       });
@@ -20,18 +24,32 @@ const OTPForm = ({ mobileNumber, onSuccess }) => {
       if (res.status === 200) {
         onSuccess(res.data); // Pass token & sid to parent
       } else {
-        setError('OTP verification failed. Please try again.');
+        showToast({
+                type: 'info',
+                title: 'OTP verification failed',
+                text: 'OTP verification failed. Please try again.',
+              });
+        
       }
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || 'OTP verification failed.');
+      showToast({
+        type: 'info',
+        title: 'OTP verification failed',
+        text: err.response?.data?.message || 'OTP verification failed.',
+      });
+      
     } finally {
       setLoading(false);
+      
     }
   };
 
   return (
     <div className="max-w-md mx-auto mt-8 p-6 bg-white dark:bg-gray-900 shadow-lg rounded-lg">
+      {loading ? (
+        <Loading text="Verifying OTP..." />
+      ) : (
+        <>
       <h2 className="text-2xl font-bold mb-4 text-center text-gray-800 dark:text-white">
         Enter OTP
       </h2>
@@ -53,6 +71,8 @@ const OTPForm = ({ mobileNumber, onSuccess }) => {
         </button>
         {error && <p className="text-red-500 text-sm">{error}</p>}
       </form>
+      </>
+      )}
     </div>
   );
 };

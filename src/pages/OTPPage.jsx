@@ -9,11 +9,14 @@ const OTPPage = () => {
   const mobileNumber = localStorage.getItem('mobileNumber');
 
   const handleOTPVerified = (data) => {
+    debugger
     // Store the session/token info
-    localStorage.setItem('authToken', data.data?.token || '');
-    localStorage.setItem('sid', data.data?.sid || '');
-    localStorage.setItem('ucc', data.data?.ucc || '');
-    localStorage.setItem('data', data);
+  localStorage.setItem('authToken', data.data?.token || '');
+   
+  sessionStorage.setItem('authToken', data.data?.token || '');
+  sessionStorage.setItem('sid', data.data?.sid || '');
+  sessionStorage.setItem('ucc', data.data?.ucc || '');
+  sessionStorage.setItem('data', JSON.stringify(data.data)); // stringify if it's an object
 
     // Redirect to Dashboard
     navigate('/dashboard');

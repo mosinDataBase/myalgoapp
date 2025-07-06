@@ -3,9 +3,9 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 const PrivateRoute = ({ children }) => {
-  debugger;
+
   //const authToken = localStorage.getItem('authToken');
-  const authToken = 'authToken';
+  const authToken = sessionStorage.getItem('authToken');
 
   if (!authToken) {
     return <Navigate to="/" replace />;
