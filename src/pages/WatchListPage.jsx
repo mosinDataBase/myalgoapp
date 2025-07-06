@@ -47,7 +47,7 @@ const WatchListPage = () => {
                     <td className="px-4 py-2">{s.name}</td>
                     <td className="px-4 py-2 text-gray-700">{s.symbol}</td>
                     <td className="px-4 py-2 text-right text-blue-500 font-semibold">
-                      ➕ Add
+                      Add ➕
                     </td>
                   </tr>
                 ))}

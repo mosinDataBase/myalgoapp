@@ -11,7 +11,21 @@ export const initSymbolDB = async () => {
   return openDB(DB_NAME, DB_VERSION, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(SYMBOLS_STORE)) {
-        db.createObjectStore(SYMBOLS_STORE, { keyPath: "symbol" });
+        const symbolStore = db.createObjectStore(SYMBOLS_STORE, {
+          keyPath: "symbol",
+        });
+
+        // ✅ Add indexes
+        symbolStore.createIndex("symbol", "symbol", { unique: true });
+        symbolStore.createIndex("name", "name", { unique: false });
+      } else {
+        const store = db.transaction.objectStore(SYMBOLS_STORE);
+        if (!store.indexNames.contains("symbol")) {
+          store.createIndex("symbol", "symbol", { unique: true });
+        }
+        if (!store.indexNames.contains("name")) {
+          store.createIndex("name", "name", { unique: false });
+        }
       }
 
       if (!db.objectStoreNames.contains(WATCHLIST_STORE)) {
@@ -30,8 +44,13 @@ export const saveAllSymbols = async (symbols) => {
   const tx = db.transaction(SYMBOLS_STORE, "readwrite");
   const store = tx.objectStore(SYMBOLS_STORE);
   await store.clear();
-  symbols.forEach((s) => store.put(s));
-  await tx.done;
+  symbols.forEach((s) => {
+    store.put({
+      ...s,
+      symbol: s.symbol.toLowerCase(),
+      name: s.name.toLowerCase(),
+    });
+  });
 };
 
 export const getAllSymbols = async () => {

@@ -1,85 +1,116 @@
-export function filterSymbols({ searchTerm, allSymbols = [], watchList = [] }) {
+// src/utils/searchUtils.jsx
+
+export async function filterSymbols({ searchTerm, watchList = [] }) {
   if (!searchTerm || searchTerm.trim().length < 3) return [];
 
   const term = searchTerm.toLowerCase();
 
-  // 1️⃣ Exclude already added symbols
-  let available = allSymbols.filter(
-    (s) =>
-      typeof s.symbol === "string" &&
-      typeof s.name === "string" &&
-      !watchList.some((item) => item.symbol === s.symbol)
+  const db = await import("./allSymbolDB.jsx").then((m) => m.initSymbolDB());
+  const store = db.transaction("symbols", "readonly").store;
+
+  const seen = new Set(watchList.map((item) => item.symbol));
+  const matchedSymbols = new Set();
+  const results = [];
+
+  // 1️⃣ Prefix match on symbol
+  const symbolIndex = store.index("symbol");
+  let cursor = await symbolIndex.openCursor(
+    IDBKeyRange.bound(term, term + "\uffff")
   );
+  while (cursor) {
+    const s = cursor.value;
+    if (!seen.has(s.symbol) && !matchedSymbols.has(s.symbol)) {
+      results.push(s);
+      matchedSymbols.add(s.symbol);
+    }
+    cursor = await cursor.continue();
+  }
 
-  // 2️⃣ Match name
-  const nameMatches = available
-    .filter((s) => s.name.toLowerCase().includes(term))
-    .sort((a, b) => {
-      const aName = a.name.toLowerCase();
-      const bName = b.name.toLowerCase();
-      const aStarts = aName.startsWith(term);
-      const bStarts = bName.startsWith(term);
-      if (aStarts && !bStarts) return -1;
-      if (!aStarts && bStarts) return 1;
-      return aName.localeCompare(bName);
-    });
+  // 2️⃣ Prefix match on name
+  const nameIndex = store.index("name");
+  cursor = await nameIndex.openCursor(IDBKeyRange.bound(term, term + "\uffff"));
+  while (cursor) {
+    const s = cursor.value;
+    if (!seen.has(s.symbol) && !matchedSymbols.has(s.symbol)) {
+      results.push(s);
+      matchedSymbols.add(s.symbol);
+    }
+    cursor = await cursor.continue();
+  }
 
-  const matchedSymbols = new Set(nameMatches.map((s) => s.symbol));
-
-  // 3️⃣ Match symbol
-  const symbolMatches = available.filter(
-    (s) =>
-      s.symbol.toLowerCase().includes(term) && !matchedSymbols.has(s.symbol)
-  );
-  symbolMatches.forEach((s) => matchedSymbols.add(s.symbol));
-
-  // 4️⃣ Smart combined fallback
-  const smartMatches = available.filter((s) => {
+  // 3️⃣ Smart fallback
+  cursor = await store.openCursor();
+  while (cursor) {
+    const s = cursor.value;
     const combined = `${s.name}${s.symbol}`.toLowerCase();
-    return combined.includes(term) && !matchedSymbols.has(s.symbol);
-  });
-  smartMatches.forEach((s) => matchedSymbols.add(s.symbol));
+    if (
+      combined.includes(term) &&
+      !seen.has(s.symbol) &&
+      !matchedSymbols.has(s.symbol)
+    ) {
+      results.push(s);
+      matchedSymbols.add(s.symbol);
+    }
+    cursor = await cursor.continue();
+  }
 
-  // 5️⃣ Tokenized search
-  const parts = term.match(/\w+/g) || [];
-  const tokenMatches = available.filter((s) => {
-    const combined =
-      s.name === s.symbol
-        ? s.symbol.toLowerCase()
-        : `${s.name} ${s.symbol}`.toLowerCase();
-    return (
-      parts.every((p) => combined.includes(p)) && !matchedSymbols.has(s.symbol)
-    );
-  });
-  tokenMatches.forEach((s) => matchedSymbols.add(s.symbol));
-
-  // ✅ 6️⃣ FUTURE-style decoding (e.g., NIFTY25JULFUT)
-  const futureMatches = available.filter((s) => {
+  // 4️⃣ FUTURE-style decoding (e.g., NIFTY25JULFUT)
+  cursor = await store.openCursor();
+  while (cursor) {
+    const s = cursor.value;
     const raw = s.symbol.toLowerCase();
-    if (!raw.endsWith("fut")) return false;
+    if (!raw.endsWith("fut")) {
+      cursor = await cursor.continue();
+      continue;
+    }
 
     const match = raw.match(/([a-z]+)(\d{2})([a-z]{3})fut/);
-    if (!match) return false;
+    if (!match) {
+      cursor = await cursor.continue();
+      continue;
+    }
 
     const [, name, year, month] = match;
     const composed = `${name}${year}${month}`;
 
-    return (
+    if (
       (composed.includes(term) ||
         `${name} ${year}${month}`.includes(term) ||
         `${name.toUpperCase()} ${year}${month.toUpperCase()}`.includes(
           searchTerm
         )) &&
+      !seen.has(s.symbol) &&
       !matchedSymbols.has(s.symbol)
-    );
-  });
+    ) {
+      results.push(s);
+      matchedSymbols.add(s.symbol);
+    }
 
-  // 🔚 Combine all
-  return [
-    ...nameMatches,
-    ...symbolMatches,
-    ...smartMatches,
-    ...tokenMatches,
-    ...futureMatches,
-  ];
+    cursor = await cursor.continue();
+  }
+
+  // 5️⃣ Tokenized match
+  const parts = term.match(/\w+/g) || [];
+  if (parts.length > 1) {
+    cursor = await store.openCursor();
+    while (cursor) {
+      const s = cursor.value;
+      const combined =
+        s.name === s.symbol
+          ? s.symbol.toLowerCase()
+          : `${s.name} ${s.symbol}`.toLowerCase();
+
+      const match = parts.every((p) => combined.includes(p));
+
+      if (match && !seen.has(s.symbol) && !matchedSymbols.has(s.symbol)) {
+        results.push(s);
+        matchedSymbols.add(s.symbol);
+      }
+
+      cursor = await cursor.continue();
+    }
+  }
+  debugger;
+  console.log("filter data: ", results.slice(0, 200));
+  return results.slice(0, 200); // limit results
 }

@@ -5,8 +5,9 @@ import { Navigate } from "react-router-dom";
 const PrivateRoute = ({ children }) => {
   //const authToken = localStorage.getItem('authToken');
   const authToken = sessionStorage.getItem("authToken");
+  const mobileNumber = sessionStorage.getItem("mobileNumber");
 
-  if (!authToken) {
+  if (!authToken && !mobileNumber) {
     return <Navigate to="/" replace />;
   }
 

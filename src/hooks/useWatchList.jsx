@@ -19,13 +19,12 @@ export default function useWatchList() {
   const [filteredSymbols, setFilteredSymbols] = useState([]);
   const [allSymbols, setAllSymbols] = useState([]);
   const searchRef = useRef(null);
-  const debouncedTerm = useDebounce(searchTerm, 200);
+  const debouncedTerm = useDebounce(searchTerm, 50);
   const mobileNumber = localStorage.getItem("mobileNumber");
 
   const socketRef = useRef(null);
 
   useEffect(() => {
-    debugger;
     if (!watchList.length || !mobileNumber) return;
 
     const tokens = watchList.map((item) => ({
@@ -102,12 +101,22 @@ export default function useWatchList() {
 
   // Filter symbol list on input
   useEffect(() => {
-    const results = filterSymbols({
-      searchTerm: debouncedTerm,
-      allSymbols,
-      watchList,
-    });
-    setFilteredSymbols(results);
+    const fetchFiltered = async () => {
+      if (!debouncedTerm || allSymbols.length === 0) {
+        setFilteredSymbols([]);
+        return;
+      }
+
+      const results = await filterSymbols({
+        searchTerm: debouncedTerm,
+        allSymbols,
+        watchList,
+      });
+      debugger;
+      setFilteredSymbols(results);
+    };
+
+    fetchFiltered();
   }, [debouncedTerm, allSymbols, watchList]);
 
   const fetchSymbolData = async (symbol) => {
@@ -127,6 +136,7 @@ export default function useWatchList() {
 
   const addToWatchList = async (symbol) => {
     const data = await fetchSymbolData(symbol);
+
     if (!data) return;
 
     const newStock = {
@@ -143,8 +153,11 @@ export default function useWatchList() {
       const alreadyExists = prev.some(
         (item) => item.symbol === newStock.symbol
       );
-      saveWatchSymbol(newStock);
-      return alreadyExists ? prev : [...prev, newStock];
+      if (!alreadyExists) {
+        saveWatchSymbol(newStock); // ✅ Only save if not a duplicate
+        return [...prev, newStock];
+      }
+      return prev;
     });
 
     setSearchTerm("");
