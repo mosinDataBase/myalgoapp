@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import URLS from "../config/apiUrls";
 import { showToast, showConfirmDialog } from "../utils/alerts";
-import { filterSymbols } from "../utils/searchUtils";
+import { filterSymbols, normalizeSymbolData } from "../utils/searchUtils";
 import useDebounce from "../utils/useDebounce";
 import { io } from "socket.io-client";
 import {
@@ -89,6 +89,7 @@ export default function useWatchList() {
         try {
           const res = await axios.get(URLS.symbols);
           const symbols = res.data.symbols || [];
+          console.log("symbols", symbols);
           setAllSymbols(symbols);
           saveAllSymbols(symbols);
         } catch (err) {
@@ -106,14 +107,16 @@ export default function useWatchList() {
         setFilteredSymbols([]);
         return;
       }
+      if (searchTerm.length >= 3) {
+        const results = await filterSymbols({
+          searchTerm: debouncedTerm,
+          allSymbols,
+          watchList,
+        });
 
-      const results = await filterSymbols({
-        searchTerm: debouncedTerm,
-        allSymbols,
-        watchList,
-      });
-      debugger;
-      setFilteredSymbols(results);
+        debugger;
+        setFilteredSymbols(results);
+      }
     };
 
     fetchFiltered();
@@ -123,6 +126,8 @@ export default function useWatchList() {
     try {
       const res = await axios.post(URLS.quotes, { mobileNumber, symbol });
       const data = res.data?.data?.data?.[0];
+      const rawData = res.data;
+      console.log("rawData", rawData);
       return data;
     } catch (err) {
       showToast({
@@ -135,27 +140,23 @@ export default function useWatchList() {
   };
 
   const addToWatchList = async (symbol) => {
-    const data = await fetchSymbolData(symbol);
+    const rawData = await fetchSymbolData(symbol);
 
-    if (!data) return;
+    const data = normalizeSymbolData(rawData, symbol);
 
-    const newStock = {
-      symbol: data.trading_symbol,
-      ltp: parseFloat(data.last_traded_price || 0),
-      change: parseFloat(data.change || 0),
-      changePercent: parseFloat(data.net_change_percentage || 0),
-      ohlc: data.ohlc || {},
-      segment: data.exchange_segment || "",
-      token: data.instrument_token || "",
-    };
+    if (!data) {
+      showToast({
+        type: "error",
+        title: "Invalid Symbol",
+        text: `No valid data for ${symbol.toUpperCase()}`,
+      });
+      return;
+    }
 
     setWatchList((prev) => {
-      const alreadyExists = prev.some(
-        (item) => item.symbol === newStock.symbol
-      );
-      if (!alreadyExists) {
-        saveWatchSymbol(newStock); // ✅ Only save if not a duplicate
-        return [...prev, newStock];
+      if (!prev.some((item) => item.symbol === data.symbol)) {
+        saveWatchSymbol(data);
+        return [...prev, data];
       }
       return prev;
     });

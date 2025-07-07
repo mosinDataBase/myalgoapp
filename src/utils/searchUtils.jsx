@@ -1,10 +1,7 @@
-// src/utils/searchUtils.jsx
-
 export async function filterSymbols({ searchTerm, watchList = [] }) {
   if (!searchTerm || searchTerm.trim().length < 3) return [];
 
   const term = searchTerm.toLowerCase();
-
   const db = await import("./allSymbolDB.jsx").then((m) => m.initSymbolDB());
   const store = db.transaction("symbols", "readonly").store;
 
@@ -12,105 +9,86 @@ export async function filterSymbols({ searchTerm, watchList = [] }) {
   const matchedSymbols = new Set();
   const results = [];
 
-  // 1️⃣ Prefix match on symbol
-  const symbolIndex = store.index("symbol");
-  let cursor = await symbolIndex.openCursor(
-    IDBKeyRange.bound(term, term + "\uffff")
-  );
-  while (cursor) {
-    const s = cursor.value;
+  const addMatch = (s) => {
     if (!seen.has(s.symbol) && !matchedSymbols.has(s.symbol)) {
       results.push(s);
       matchedSymbols.add(s.symbol);
     }
-    cursor = await cursor.continue();
-  }
+  };
 
-  // 2️⃣ Prefix match on name
-  const nameIndex = store.index("name");
-  cursor = await nameIndex.openCursor(IDBKeyRange.bound(term, term + "\uffff"));
-  while (cursor) {
-    const s = cursor.value;
-    if (!seen.has(s.symbol) && !matchedSymbols.has(s.symbol)) {
-      results.push(s);
-      matchedSymbols.add(s.symbol);
-    }
-    cursor = await cursor.continue();
-  }
-
-  // 3️⃣ Smart fallback
-  cursor = await store.openCursor();
-  while (cursor) {
-    const s = cursor.value;
-    const combined = `${s.name}${s.symbol}`.toLowerCase();
-    if (
-      combined.includes(term) &&
-      !seen.has(s.symbol) &&
-      !matchedSymbols.has(s.symbol)
-    ) {
-      results.push(s);
-      matchedSymbols.add(s.symbol);
-    }
-    cursor = await cursor.continue();
-  }
-
-  // 4️⃣ FUTURE-style decoding (e.g., NIFTY25JULFUT)
-  cursor = await store.openCursor();
-  while (cursor) {
-    const s = cursor.value;
-    const raw = s.symbol.toLowerCase();
-    if (!raw.endsWith("fut")) {
-      cursor = await cursor.continue();
-      continue;
-    }
-
-    const match = raw.match(/([a-z]+)(\d{2})([a-z]{3})fut/);
-    if (!match) {
-      cursor = await cursor.continue();
-      continue;
-    }
-
-    const [, name, year, month] = match;
-    const composed = `${name}${year}${month}`;
-
-    if (
-      (composed.includes(term) ||
-        `${name} ${year}${month}`.includes(term) ||
-        `${name.toUpperCase()} ${year}${month.toUpperCase()}`.includes(
-          searchTerm
-        )) &&
-      !seen.has(s.symbol) &&
-      !matchedSymbols.has(s.symbol)
-    ) {
-      results.push(s);
-      matchedSymbols.add(s.symbol);
-    }
-
-    cursor = await cursor.continue();
-  }
-
-  // 5️⃣ Tokenized match
-  const parts = term.match(/\w+/g) || [];
-  if (parts.length > 1) {
-    cursor = await store.openCursor();
-    while (cursor) {
-      const s = cursor.value;
-      const combined =
-        s.name === s.symbol
-          ? s.symbol.toLowerCase()
-          : `${s.name} ${s.symbol}`.toLowerCase();
-
-      const match = parts.every((p) => combined.includes(p));
-
-      if (match && !seen.has(s.symbol) && !matchedSymbols.has(s.symbol)) {
-        results.push(s);
-        matchedSymbols.add(s.symbol);
-      }
-
+  // 🔹 Search by symbol
+  try {
+    const symbolIndex = store.index("symbol");
+    let cursor = await symbolIndex.openCursor(
+      IDBKeyRange.bound(term, term + "\uffff")
+    );
+    while (cursor && results.length < 50) {
+      addMatch(cursor.value);
       cursor = await cursor.continue();
     }
+  } catch (e) {
+    console.warn("Symbol index not found", e);
   }
-  debugger;
-  console.log("filter data: ", results.slice(0, 200));
-  return results.slice(0, 200); // limit results
+
+  // 🔹 Search by name
+  try {
+    const nameIndex = store.index("name");
+    let cursor = await nameIndex.openCursor(
+      IDBKeyRange.bound(term, term + "\uffff")
+    );
+    while (cursor && results.length < 100) {
+      addMatch(cursor.value);
+      cursor = await cursor.continue();
+    }
+  } catch (e) {
+    console.warn("Name index not found", e);
+  }
+  console.log("search results", results);
+  return results.slice(0, 50);
+}
+
+// src/utils/normalizeSymbolData.js
+export function normalizeSymbolData(raw, fallbackSymbol = "") {
+  if (!raw || typeof raw !== "object") return null;
+
+  const symbol = (raw.trading_symbol || raw.ts || fallbackSymbol || "")
+    .toUpperCase()
+    .trim();
+  const token = raw.instrument_token || raw.tk || "";
+
+  // 🔐 Ensure valid token and symbol
+  if (!symbol || !token) return null;
+
+  const toNum = (val) => {
+    const n = parseFloat(val);
+    return isNaN(n) ? 0 : n;
+  };
+
+  const ltp = toNum(raw.ltp || raw.last_traded_price);
+
+  // 🔐 Optionally block if LTP is 0
+  if (ltp === 0) return null;
+
+  return {
+    symbol,
+    token,
+    segment: raw.exchange_segment || raw.e || "",
+    ltp,
+    change: toNum(raw.cng || raw.change),
+    changePercent: toNum(raw.nc || raw.net_change_percentage),
+    ohlc: {
+      open: toNum(raw.op || raw.ohlc?.open),
+      high: toNum(raw.h || raw.ohlc?.high),
+      low: toNum(raw.lo || raw.ohlc?.low),
+      close: toNum(raw.c || raw.ohlc?.close),
+    },
+    upper_circuit: toNum(raw.ucl || raw.upper_circuit_limit),
+    lower_circuit: toNum(raw.lcl || raw.lower_circuit_limit),
+    last_traded_quantity: toNum(raw.ltq || raw.last_traded_quantity),
+    precision: toNum(raw.precision || raw.prec),
+    request_type: raw.request_type || "",
+    name: raw.name || "",
+    week_high: toNum(raw["52week_high"]),
+    week_low: toNum(raw["52week_low"]),
+  };
 }

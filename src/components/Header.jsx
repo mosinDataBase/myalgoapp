@@ -18,7 +18,7 @@ const Header = () => {
     localStorage.clear();
     sessionStorage.clear();
 
-    const deleteRequest = indexedDB.deleteDatabase("MarketSymbolsDB");
+   /* const deleteRequest = indexedDB.deleteDatabase("MarketSymbolsDB");
 
     deleteRequest.onsuccess = () => {
       console.log("✅ IndexedDB deleted successfully");
@@ -31,6 +31,7 @@ const Header = () => {
     deleteRequest.onblocked = () => {
       console.warn("⚠️ Deletion blocked: DB still in use (close other tabs)");
     };
+    */
 
     navigate("/");
   };

@@ -63,6 +63,7 @@ export const getAllSymbols = async () => {
 //
 
 export const saveWatchSymbol = async (stock) => {
+  debugger;
   const db = await initSymbolDB();
   const tx = db.transaction(WATCHLIST_STORE, "readwrite");
   await tx.store.put(stock);
