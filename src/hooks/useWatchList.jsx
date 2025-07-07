@@ -114,7 +114,7 @@ export default function useWatchList() {
           watchList,
         });
 
-        debugger;
+   
         setFilteredSymbols(results);
       }
     };

@@ -11,8 +11,9 @@ const DashboardLayout = ({ children }) => {
 
       {/* Main content area */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Header */}
-        <Header />
+        {/* Header */}        
+        <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+
 
         {/* Content & Footer */}
         <div className="flex flex-col flex-1 overflow-hidden">

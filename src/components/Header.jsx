@@ -1,38 +1,24 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Switch } from "@headlessui/react";
 import { useNavigate } from "react-router-dom";
-import { initSymbolDB } from "../utils/allSymbolDB";
+import { FaBars } from "react-icons/fa";
 
-const Header = () => {
+const Header = ({ toggleSidebar }) => {
   const [tradingStarted, setTradingStarted] = useState(true);
-  const navigate = useNavigate();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const closeTimeoutRef = useRef(null);
+  const navigate = useNavigate();
+
   const dataString = sessionStorage.getItem("data");
   const userData = dataString ? JSON.parse(dataString) : null;
-  // Toggle user menu on mobile
+
   const toggleUserMenu = () => {
     setUserMenuOpen(!userMenuOpen);
   };
-  const handleLogout = async () => {
+
+  const handleLogout = () => {
     localStorage.clear();
     sessionStorage.clear();
-
-   /* const deleteRequest = indexedDB.deleteDatabase("MarketSymbolsDB");
-
-    deleteRequest.onsuccess = () => {
-      console.log("✅ IndexedDB deleted successfully");
-    };
-
-    deleteRequest.onerror = () => {
-      console.error("❌ Failed to delete IndexedDB");
-    };
-
-    deleteRequest.onblocked = () => {
-      console.warn("⚠️ Deletion blocked: DB still in use (close other tabs)");
-    };
-    */
-
     navigate("/");
   };
 
@@ -43,28 +29,61 @@ const Header = () => {
     }
   };
 
-  // When mouse leaves dropdown area, wait 200ms before closing
   const handleMouseLeave = () => {
     closeTimeoutRef.current = setTimeout(() => {
       setUserMenuOpen(false);
     }, 200);
   };
 
+  // ✅ Close user dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const dropdown = document.getElementById("user-dropdown");
+      const button = document.getElementById("user-button");
+      if (
+        userMenuOpen &&
+        dropdown &&
+        !dropdown.contains(event.target) &&
+        button &&
+        !button.contains(event.target)
+      ) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [userMenuOpen]);
+
   return (
-    <header className="flex justify-between items-center bg-white shadow px-6 py-3">
+    <header className="flex justify-between items-center bg-white shadow px-4 py-3 md:px-6">
+      {/* Left side buttons and hamburger */}
       <div className="flex items-center gap-2">
-        <button className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded">
+        {/* Hamburger - visible only on mobile */}
+        <button
+          onClick={toggleSidebar}
+          className="md:hidden text-gray-600 text-xl mr-2"
+        >
+          <FaBars />
+        </button>
+
+        {/* Semi/Auto/Forward Testing buttons */}
+        <button className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded text-sm">
           Semi
         </button>
-        <button className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded">
+        <button className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded text-sm">
           Auto
         </button>
-        <button className="bg-indigo-600 text-white px-4 py-1 rounded">
+        <button className="bg-indigo-600 text-white px-4 py-1 rounded text-sm">
           Forward Testing
         </button>
       </div>
+
+      {/* Right side controls */}
       <div className="flex items-center gap-4">
-        <span className="text-sm text-gray-700 dark:text-gray-300">
+        <span className="text-sm text-gray-700 dark:text-gray-300 hidden sm:block">
           Trading is Started
         </span>
         <Switch
@@ -83,8 +102,8 @@ const Header = () => {
 
         {/* User menu */}
         <div className="relative group">
-          {/* User info button */}
           <button
+            id="user-button"
             onClick={toggleUserMenu}
             className="flex items-center gap-2 focus:outline-none"
             aria-haspopup="true"
@@ -95,20 +114,17 @@ const Header = () => {
                 👤
               </span>
             </div>
-            <span className="text-gray-700 text-sm">
-              {userData.greetingName}
+            <span className="text-gray-700 text-sm hidden sm:inline">
+              {userData?.greetingName || "User"}
             </span>
           </button>
 
-          {/* Dropdown menu */}
+          {/* Dropdown */}
           <div
-            className={`
-              absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-md
-              transition-opacity duration-200
-              ${
-                userMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
-              }     
-            `}
+            id="user-dropdown"
+            className={`absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-md transition-opacity duration-200 z-50 ${
+              userMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+            }`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
