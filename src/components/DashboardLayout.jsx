@@ -3,10 +3,11 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 
 const DashboardLayout = ({ children }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
       {/* Sidebar */}
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main content area */}
       <div className="flex flex-col flex-1 overflow-hidden">

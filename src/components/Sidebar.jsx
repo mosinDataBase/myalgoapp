@@ -1,5 +1,5 @@
-// src/components/Sidebar.jsx
-// Top of your Sidebar.jsx or any component where you use these icons
+// Sidebar.jsx
+import React from "react";
 import {
   FaChartLine,
   FaClipboardList,
@@ -18,7 +18,7 @@ import {
 import { Link, NavLink } from "react-router-dom";
 import logo from "../assets/logo512-bg-remove.png";
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const menuItems = [
     { name: "Home", icon: <FaChartLine />, path: "/dashboard" },
     { name: "Watch List", icon: <FaChartLine />, path: "/watchlist" },
@@ -47,13 +47,18 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="bg-white shadow-lg w-60 min-h-screen p-4">
+    <div
+      className={`bg-white shadow-lg w-60 min-h-screen p-4 fixed top-0 left-0 z-50 transform transition-transform duration-300 ease-in-out ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      } md:translate-x-0 md:static md:block`}
+    >
       {/* Logo Section */}
       <div className="mb-6 text-center">
         <Link to="/dashboard">
           <img src={logo} alt="MyALGOFOX Logo" className="w-36 mx-auto" />
         </Link>
       </div>
+
       <ul className="space-y-4">
         {menuItems.map((item) => (
           <li key={item.name}>
@@ -64,6 +69,7 @@ const Sidebar = () => {
                   isActive ? "font-semibold text-purple-600" : ""
                 }`
               }
+              onClick={onClose} // close menu on click in mobile
             >
               {item.icon}
               <span>{item.name}</span>
@@ -72,6 +78,7 @@ const Sidebar = () => {
         ))}
       </ul>
 
+      {/* WhatsApp Icon */}
       <div className="absolute bottom-5 left-5">
         <img
           src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
