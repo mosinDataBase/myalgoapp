@@ -1,6 +1,6 @@
 // src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import OTPPage from './pages/OTPPage';
 import HomePage from './pages/HomePage';
 import DashboardLayout from './components/DashboardLayout';
