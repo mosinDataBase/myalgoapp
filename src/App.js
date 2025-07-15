@@ -24,7 +24,7 @@ import URLS from './config/apiUrls';
 
 const App = () => {
   return (
-    <Router basename={URLS.PUBLIC_URL}>
+    <Router basename="/myalgoapp">
       <Routes>
 
         <Route path="/" element={<HomePage />} />
