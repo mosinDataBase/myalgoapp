@@ -3,6 +3,7 @@ const BASE_URL = 'https://myalgoserver-n87u.onrender.com';
 
 const URLS = {
     login: `${BASE_URL}/auth/login`,
+    PUBLIC_URL: `/myalgoapp`,
     otpVerify: `${BASE_URL}/auth/verify-otp`,
     dashboardData: `${BASE_URL}/dashboard/data`, // (add this route later if needed)
     quotes: `${BASE_URL}/quotes`,

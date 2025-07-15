@@ -20,10 +20,11 @@ import BroadcastMessagesPage from './pages/BroadcastMessagesPage';
 import SupportPage from './pages/SupportPage';
 import DashboardPage from './pages/DashboardPage';
 import NetPositionPage from './components/NetPosition/NetPositionPage';
+import URLS from './config/apiUrls';
 
 const App = () => {
   return (
-    <Router basename={process.env.PUBLIC_URL}>
+    <Router basename={URLS.PUBLIC_URL}>
       <Routes>
 
         <Route path="/" element={<HomePage />} />
