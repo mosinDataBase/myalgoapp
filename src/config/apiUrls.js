@@ -1,18 +1,20 @@
-// src/api/urls.js
-
-//const BASE_URL = 'http://localhost:5000'; 
-const BASE_URL = 'https://apiserver-p836.onrender.com'; 
-
+const BASE_URL = 'http://localhost:10000'; 
+// const BASE_URL = 'https://apiserver-p836.onrender.com'; 
 
 const URLS = {
-    login: `${BASE_URL}/login`,
-    otpVerify: `${BASE_URL}/verify-otp`,
-    dashboardData: `${BASE_URL}/dashboard/data`,
+    login: `${BASE_URL}/auth/login`,
+    otpVerify: `${BASE_URL}/auth/verify-otp`,
+    dashboardData: `${BASE_URL}/dashboard/data`, // (add this route later if needed)
     quotes: `${BASE_URL}/quotes`,
-    symbols: `${BASE_URL}/symbols`,
-    livedata: `${BASE_URL}/livedata`,
+    symbols: `${BASE_URL}/master/symbols`,
+    livedata: `${BASE_URL}/quotes/livedata`,
     websocket: `${BASE_URL}`,
-    logout: `${BASE_URL}/logout`,
+    logout: `${BASE_URL}/logout`, // (add this route later if needed)
+    orderLogs: `${BASE_URL}/execute-orders/orders`,
+    netPositions:  `${BASE_URL}/net/positions`,
+    wsUnsubscribe: `${BASE_URL}/socket/unsubscribe`,
+     socketBase: BASE_URL,
+
     // add more endpoints as needed
 };
 

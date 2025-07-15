@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
+
 import axios from "axios";
 import URLS from "../config/apiUrls";
 import { showToast, showConfirmDialog } from "../utils/alerts";
@@ -22,10 +24,13 @@ export default function useWatchList() {
   const debouncedTerm = useDebounce(searchTerm, 50);
   const mobileNumber = localStorage.getItem("mobileNumber");
 
+  const location = useLocation();
+  const isWatchListPage = location.pathname === "/watchlist";
+
   const socketRef = useRef(null);
 
   useEffect(() => {
-    if (!watchList.length || !mobileNumber) return;
+    if (!watchList.length || !mobileNumber || !isWatchListPage) return;
 
     const tokens = watchList.map((item) => ({
       instrument_token: item.token,
@@ -38,10 +43,10 @@ export default function useWatchList() {
       mobile: mobileNumber,
     });
 
-    // Connect WebSocket
     if (!socketRef.current) {
       socketRef.current = io(URLS.websocket);
     }
+
     socketRef.current.on("price_update", (msg) => {
       setWatchList((prev) =>
         prev.map((item) =>
@@ -69,7 +74,7 @@ export default function useWatchList() {
         socketRef.current = null;
       }
     };
-  }, [watchList, mobileNumber]);
+  }, [watchList, mobileNumber, isWatchListPage]);
 
   useEffect(() => {
     const loadWatchList = async () => {
@@ -114,7 +119,6 @@ export default function useWatchList() {
           watchList,
         });
 
-   
         setFilteredSymbols(results);
       }
     };

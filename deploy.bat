@@ -1,11 +1,10 @@
 @echo off
-echo "# MyAlgo" >> README.md
-REM  git init
-git add README.md
+echo "# myalgoapp" >> README.md
+git init
 git add .
-git commit -m "mobile view added for all screen"
+git commit -m "net postion and order book apis added"
 git branch -M main
-REM  git remote add origin https://github.com/mosin11/MyAlgo.git
+git remote add origin https://github.com/mosinDataBase/myalgoapp.git
 git push -u origin main
 
 echo === Deploying the app ===

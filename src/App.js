@@ -11,7 +11,6 @@ import PrivateRoute from './components/routes/PrivateRoute';
 import WatchListPage from './pages/WatchListPage';
 import OrdersPage from './pages/OrdersPage';
 import TradesPage from './pages/TradesPage';
-import NetPositionPage from './pages/NetPositionPage';
 import ManagementPage from './pages/ManagementPage';
 import OrderLogsPage from './pages/OrderLogsPage';
 import ActivityLogsPage from './pages/ActivityLogsPage';
@@ -20,6 +19,7 @@ import OptionAnalyticsPage from './pages/OptionAnalyticsPage';
 import BroadcastMessagesPage from './pages/BroadcastMessagesPage';
 import SupportPage from './pages/SupportPage';
 import DashboardPage from './pages/DashboardPage';
+import NetPositionPage from './components/NetPosition/NetPositionPage';
 
 const App = () => {
   return (
