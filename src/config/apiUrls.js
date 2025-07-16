@@ -10,7 +10,7 @@ const URLS = {
     symbols: `${BASE_URL}/master/symbols`,
     livedata: `${BASE_URL}/quotes/livedata`,
     websocket: `${BASE_URL}`,
-    logout: `${BASE_URL}/logout`, // (add this route later if needed)
+    logout: `${BASE_URL}/auth/logout`,
     orderLogs: `${BASE_URL}/execute-orders/orders`,
     netPositions:  `${BASE_URL}/net/positions`,
     wsUnsubscribe: `${BASE_URL}/socket/unsubscribe`,

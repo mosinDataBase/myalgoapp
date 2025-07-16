@@ -2,6 +2,9 @@ import React, { useRef, useState, useEffect } from "react";
 import { Switch } from "@headlessui/react";
 import { useNavigate } from "react-router-dom";
 import { FaBars } from "react-icons/fa";
+import { showToast } from "../utils/alerts";
+import axios from "axios";
+import URLS from "../config/apiUrls";
 
 const Header = ({ toggleSidebar }) => {
   const [tradingStarted, setTradingStarted] = useState(true);
@@ -16,11 +19,53 @@ const Header = ({ toggleSidebar }) => {
     setUserMenuOpen(!userMenuOpen);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+  try {
+    const dataString = sessionStorage.getItem("data");
+    const userData = dataString ? JSON.parse(dataString) : null;
+    const mobileNumber = localStorage.getItem("mobileNumber") || userData?.mobileNumber;
+
+    if (!mobileNumber) {
+      showToast({
+        type: "error",
+        title: "Session Invalid",
+        text: "Mobile number not found in storage.",
+      });
+      return;
+    }
+
+    const response = await axios.post(URLS.logout, { mobileNumber });
+
+    if (response.data.status === "success") {
+      showToast({
+        type: "success",
+        title: "Logout Successful",
+        text: "You have been logged out.",
+      });
+    } else {
+      showToast({
+        type: "error",
+        title: "Logout Failed",
+        text: response.data.message || "Something went wrong.",
+      });
+    }
+
     localStorage.clear();
     sessionStorage.clear();
     navigate("/");
-  };
+  } catch (error) {
+    console.error("Logout failed:", error);
+    showToast({
+      type: "error",
+      title: "Network Error",
+      text: "Logout failed. Please try again.",
+    });
+  }finally{
+     localStorage.clear();
+    sessionStorage.clear();
+    navigate("/");
+  }
+};
 
   const handleMouseEnter = () => {
     if (closeTimeoutRef.current) {
