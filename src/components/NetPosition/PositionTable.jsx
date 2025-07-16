@@ -1,4 +1,5 @@
 // src/components/NetPosition/PositionTable.jsx
+
 import React from 'react';
 import { formatNumber } from './positionUtils';
 import TypeBadge from './TypeBadge';
@@ -46,10 +47,10 @@ const PositionTable = ({ positions }) => (
             <td className="px-4 py-3 text-right font-medium align-top">
               <div
                 className={`${
-                  pos.pnl >= 0 ? 'text-green-600' : 'text-red-600'
+                  (pos.livePnl ?? pos.pnl) >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}
               >
-                ₹{formatNumber(pos.pnl)}
+                ₹{formatNumber(pos.livePnl ?? pos.pnl)}
               </div>
 
               {/* 🔘 Hover Buttons */}

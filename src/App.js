@@ -20,7 +20,7 @@ import BroadcastMessagesPage from './pages/BroadcastMessagesPage';
 import SupportPage from './pages/SupportPage';
 import DashboardPage from './pages/DashboardPage';
 import NetPositionPage from './components/NetPosition/NetPositionPage';
-import URLS from './config/apiUrls';
+
 
 const App = () => {
   return (

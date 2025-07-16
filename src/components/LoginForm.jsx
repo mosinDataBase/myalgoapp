@@ -5,6 +5,8 @@ import axios from "axios";
 import { showToast } from "../utils/alerts";
 import Loading from "../utils/Loading";
 import URLS from "../config/apiUrls";
+import { secureStore, secureRetrieve } from "../utils/allSymbolDB";
+
 
 export default function LoginForm({ isEmbedded = false, onSuccess }) {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -16,13 +18,17 @@ export default function LoginForm({ isEmbedded = false, onSuccess }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedKey = sessionStorage.getItem("consumerKey");
-    const savedSecret = sessionStorage.getItem("consumerSecret");
+    const fetchSecureKeys = async () => {
+      const key = await secureRetrieve("consumerKey");
+      const secret = await secureRetrieve("consumerSecret");
 
-    if (savedKey && savedSecret) {
-      setConsumerKey(savedKey);
-      setConsumerSecret(savedSecret);
-    }
+      if (key && secret) {
+        setConsumerKey(key);
+        setConsumerSecret(secret);
+      }
+    };
+
+    fetchSecureKeys();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -174,7 +180,7 @@ export default function LoginForm({ isEmbedded = false, onSuccess }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     if (!consumerKey || !consumerSecret) {
                       showToast({
                         type: "warning",
@@ -184,19 +190,16 @@ export default function LoginForm({ isEmbedded = false, onSuccess }) {
                       return;
                     }
 
-                    // 👉 Store in sessionStorage
-                    sessionStorage.setItem("consumerKey", consumerKey);
-                    sessionStorage.setItem("consumerSecret", consumerSecret);
+                    await secureStore("consumerKey", consumerKey);
+                    await secureStore("consumerSecret", consumerSecret);
 
                     showToast({
                       type: "success",
                       title: "Saved",
-                      text: "API keys saved successfully.",
+                      text: "API keys saved securely.",
                     });
 
-                    setTimeout(() => {
-                      setShowConfig(false);
-                    }, 1000);
+                    setTimeout(() => setShowConfig(false), 1000);
                   }}
                   className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                 >

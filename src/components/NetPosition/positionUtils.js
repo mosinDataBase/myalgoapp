@@ -7,7 +7,6 @@ export const formatNumber = (value, decimals = 2) => {
 
 export const sortPositions = (positions) => {
   return positions.sort((a, b) => {
-    // Active first, then by symbol ASC
     if (a.isActive && !b.isActive) return -1;
     if (!a.isActive && b.isActive) return 1;
     return a.sym.localeCompare(b.sym);
@@ -19,21 +18,48 @@ export const sortPositions = (positions) => {
  */
 export const enrichPositions = (rawPositions) => {
   return rawPositions.map((pos) => {
-    const buyAmt = parseFloat(pos.buyAmt || 0);
-    const sellAmt = parseFloat(pos.sellAmt || 0);
-    const buyQty = parseInt(pos.flBuyQty || 0);
-    const sellQty = parseInt(pos.flSellQty || 0);
+    const cfBuyQty = parseInt(pos.cfBuyQty || 0);
+    const flBuyQty = parseInt(pos.flBuyQty || 0);
+    const cfSellQty = parseInt(pos.cfSellQty || 0);
+    const flSellQty = parseInt(pos.flSellQty || 0);
+
+    const buyQty = cfBuyQty + flBuyQty;
+    const sellQty = cfSellQty + flSellQty;
     const netQty = buyQty - sellQty;
+
+    const cfBuyAmt = parseFloat(pos.cfBuyAmt || 0);
+    const buyAmt = parseFloat(pos.buyAmt || 0);
+    const cfSellAmt = parseFloat(pos.cfSellAmt || 0);
+    const sellAmt = parseFloat(pos.sellAmt || 0);
+
+    const totalBuyAmt = cfBuyAmt + buyAmt;
+    const totalSellAmt = cfSellAmt + sellAmt;
+
+    const avgBuyPrice = buyQty !== 0 ? totalBuyAmt / buyQty : 0;
+    const avgSellPrice = sellQty !== 0 ? totalSellAmt / sellQty : 0;
+
+    const isActive = netQty !== 0;
+    const isBuyPosition = netQty > 0;
+
+    const pnl = totalSellAmt - totalBuyAmt;
 
     return {
       ...pos,
+      cfBuyQty,
+      flBuyQty,
+      cfSellQty,
+      flSellQty,
       buyQty,
       sellQty,
       netQty,
-      avgPrice: buyAmt / (buyQty || 1),
-      pnl: sellAmt - buyAmt,
-      isActive: netQty !== 0,
-      isBuyPosition: netQty > 0,
+      totalBuyAmt,
+      totalSellAmt,
+      avgBuyPrice,
+      avgSellPrice,
+      pnl,
+      isActive,
+      isBuyPosition,
+      livePnl: null, // This will be updated live via socket
     };
   });
 };

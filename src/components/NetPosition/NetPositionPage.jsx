@@ -1,4 +1,5 @@
 // src/components/NetPosition/NetPositionPage.jsx
+
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -17,7 +18,7 @@ const NetPositionPage = () => {
   useEffect(() => {
     const fetchPositions = async () => {
       try {
-        const res = await axios.post(URLS.netPositions, { mobile }); // 🔁 Backend already subscribes here
+        const res = await axios.post(URLS.netPositions, { mobile });
         if (res.data.status === 'success') {
           const enriched = enrichPositions(res.data.positions);
           const sorted = sortPositions(enriched);
@@ -26,7 +27,6 @@ const NetPositionPage = () => {
           const total = sorted.reduce((acc, pos) => acc + pos.pnl, 0);
           setTotalPnl(total);
 
-          // 🔌 Connect to receive WebSocket updates (no need to emit subscribe)
           connectSocket();
         }
       } catch (err) {
@@ -37,30 +37,48 @@ const NetPositionPage = () => {
     };
 
     const connectSocket = () => {
-      socketRef.current = io(URLS.socketBase); // 🌐 should be base socket.io server URL
+      socketRef.current = io(URLS.socketBase);
 
       socketRef.current.on('ltp_update', (data) => {
-        setPositions((prev) =>
-          prev.map((pos) =>
-            pos.token === data.tk && pos.exchangeSegment === data.e
-              ? { ...pos, ltp: data.ltp }
-              : pos
-          )
-        );
+        setPositions((prev) => {
+          const updated = prev.map((pos) => {
+            if (pos.tok === data.tk && pos.exSeg === data.e) {
+              const ltp = data.ltp;
+              const livePnl = pos.isActive
+                ? pos.isBuyPosition
+                  ? (ltp - pos.avgBuyPrice) * Math.abs(pos.netQty)
+                  : (pos.avgSellPrice - ltp) * Math.abs(pos.netQty)
+                : pos.pnl;
+
+              return {
+                ...pos,
+                ltp,
+                livePnl,
+              };
+            }
+            return pos;
+          });
+
+          const total = updated.reduce(
+            (acc, pos) => acc + (pos.livePnl ?? pos.pnl),
+            0
+          );
+          setTotalPnl(total);
+
+          return updated;
+        });
       });
     };
 
     if (mobile) fetchPositions();
 
     return () => {
-      // 🔌 Unsubscribe client-side
       if (socketRef.current) {
-        socketRef.current.emit('unsubscribe_all', { mobile }); // 🔄 optional, depending on your backend
+        socketRef.current.emit('unsubscribe_all', { mobile });
         socketRef.current.disconnect();
         socketRef.current = null;
       }
 
-      // 🔁 Also tell backend to unsubscribe tokens
       axios
         .post(URLS.wsUnsubscribe, { mobile })
         .catch((err) => console.warn('Backend unsubscribe failed:', err));
