@@ -1,8 +1,8 @@
 // src/components/NetPosition/PositionTable.jsx
 
-import React from 'react';
-import { formatNumber } from './positionUtils';
-import TypeBadge from './TypeBadge';
+import React from "react";
+import { formatNumber } from "./positionUtils";
+import TypeBadge from "./TypeBadge";
 
 const PositionTable = ({ positions }) => (
   <div className="hidden sm:block overflow-x-auto shadow border rounded-lg">
@@ -26,7 +26,7 @@ const PositionTable = ({ positions }) => (
           <tr
             key={index}
             className={`group hover:bg-gray-50 transition ${
-              !pos.isActive ? 'opacity-50' : ''
+              !pos.isActive ? "opacity-50" : ""
             }`}
           >
             <td className="px-4 py-3 align-top">{index + 1}</td>
@@ -34,7 +34,7 @@ const PositionTable = ({ positions }) => (
               {pos.sym} <TypeBadge pos={pos} />
             </td>
             <td className="px-4 py-3 align-top">{pos.prod}</td>
-            <td className="px-4 py-3 align-top">{pos.expDt || '--'}</td>
+            <td className="px-4 py-3 align-top">{pos.expDt || "--"}</td>
             <td className="px-4 py-3 text-right align-top">{pos.buyQty}</td>
             <td className="px-4 py-3 text-right align-top">{pos.sellQty}</td>
             <td className="px-4 py-3 text-right align-top">{pos.netQty}</td>
@@ -42,12 +42,14 @@ const PositionTable = ({ positions }) => (
               ₹{formatNumber(pos.avgPrice)}
             </td>
             <td className="px-4 py-3 text-right align-top">
-              {pos.ltp ? `₹${formatNumber(pos.ltp)}` : '--'}
+              {Number.isFinite(pos.ltp) ? `₹${formatNumber(pos.ltp)}` : "--"}
             </td>
             <td className="px-4 py-3 text-right font-medium align-top">
               <div
                 className={`${
-                  (pos.livePnl ?? pos.pnl) >= 0 ? 'text-green-600' : 'text-red-600'
+                  (pos.livePnl ?? pos.pnl) >= 0
+                    ? "text-green-600"
+                    : "text-red-600"
                 }`}
               >
                 ₹{formatNumber(pos.livePnl ?? pos.pnl)}

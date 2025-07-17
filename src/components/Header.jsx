@@ -103,7 +103,9 @@ const Header = ({ toggleSidebar }) => {
   }, [userMenuOpen]);
 
   return (
-    <header className="flex justify-between items-center bg-white shadow px-4 py-3 md:px-6">
+    <header className="flex justify-between items-center bg-white shadow px-4 py-3 md:px-6 fixed top-0 z-40 w-full">
+
+      
       {/* Left side buttons and hamburger */}
       <div className="flex items-center gap-2">
         {/* Hamburger - visible only on mobile */}

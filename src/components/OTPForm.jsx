@@ -4,10 +4,13 @@ import URLS from "../config/apiUrls";
 import { showToast } from "../utils/alerts";
 import Loading from "../utils/Loading";
 
+
 const OTPForm = ({ mobileNumber, onSuccess }) => {
+
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
 
   const handleOTPSubmit = async (e) => {
     e.preventDefault();
@@ -21,7 +24,25 @@ const OTPForm = ({ mobileNumber, onSuccess }) => {
       });
 
       if (res.status === 200) {
-        onSuccess(res.data); // Pass token & sid to parent
+        debugger
+        onSuccess(res.data);
+
+        try {
+          // const loadSymbolData = await axios.post(URLS.symbolsLoad, {
+          //   mobileNumber,
+          // });
+          // const symbols = loadSymbolData.data?.nse_cm_symbols || [];
+      
+          // console.log("Symbols stored in context:", symbols);
+          // Optional: You can store `nse_cm_symbols` in context or global state here
+        } catch (symbolErr) {
+          showToast({
+            type: "error",
+            title: "Master Data Error",
+            text: "Symbols could not be loaded.",
+          });
+        }
+
       } else {
         showToast({
           type: "info",

@@ -13,6 +13,9 @@ const NetPositionPage = () => {
   const [loading, setLoading] = useState(true);
   const [totalPnl, setTotalPnl] = useState(0);
   const socketRef = useRef(null);
+  const socketConnectedRef = useRef(false);
+  const positionsMapRef = useRef({}); // 🔁 Keeps position data in memory
+
   const mobile = localStorage.getItem('mobileNumber');
 
   useEffect(() => {
@@ -22,10 +25,16 @@ const NetPositionPage = () => {
         if (res.data.status === 'success') {
           const enriched = enrichPositions(res.data.positions);
           const sorted = sortPositions(enriched);
-          setPositions(sorted);
 
-          const total = sorted.reduce((acc, pos) => acc + pos.pnl, 0);
-          setTotalPnl(total);
+          // Update ref map
+          const map = {};
+          sorted.forEach((pos) => {
+            map[`${pos.tok}-${pos.exSeg}`] = { ...pos };
+          });
+          positionsMapRef.current = map;
+
+          setPositions(Object.values(map));
+          setTotalPnl(Object.values(map).reduce((acc, p) => acc + p.pnl, 0));
 
           connectSocket();
         }
@@ -37,36 +46,49 @@ const NetPositionPage = () => {
     };
 
     const connectSocket = () => {
-      socketRef.current = io(URLS.socketBase);
+      if (socketConnectedRef.current || socketRef.current) return;
 
-      socketRef.current.on('ltp_update', (data) => {
-        setPositions((prev) => {
-          const updated = prev.map((pos) => {
-            if (pos.tok === data.tk && pos.exSeg === data.e) {
-              const ltp = data.ltp;
-              const livePnl = pos.isActive
-                ? pos.isBuyPosition
-                  ? (ltp - pos.avgBuyPrice) * Math.abs(pos.netQty)
-                  : (pos.avgSellPrice - ltp) * Math.abs(pos.netQty)
-                : pos.pnl;
+      socketRef.current = io(URLS.socketBase, {
+        transports: ['websocket'],
+      });
 
-              return {
-                ...pos,
+      socketConnectedRef.current = true;
+
+      socketRef.current.on('live_data', (payload) => {
+        if (payload?.type === 'stock_feed' && Array.isArray(payload.data)) {
+          let hasUpdates = false;
+
+          payload.data.forEach((item) => {
+            
+            const key = `${item.tk}-${item.e}`;
+            const existing = positionsMapRef.current[key];
+            if (!existing) return;
+
+            const ltp = Number(item.ltp);
+            const livePnl = existing.isActive
+              ? existing.isBuyPosition
+                ? (ltp - existing.avgBuyPrice) * Math.abs(existing.netQty)
+                : (existing.avgSellPrice - ltp) * Math.abs(existing.netQty)
+              : existing.pnl;
+
+            // Only update if LTP actually changed
+            if (existing.ltp !== ltp || existing.livePnl !== livePnl) {
+              positionsMapRef.current[key] = {
+                ...existing,
                 ltp,
                 livePnl,
               };
+              hasUpdates = true;
             }
-            return pos;
           });
 
-          const total = updated.reduce(
-            (acc, pos) => acc + (pos.livePnl ?? pos.pnl),
-            0
-          );
-          setTotalPnl(total);
-
-          return updated;
-        });
+          if (hasUpdates) {
+            const updated = Object.values(positionsMapRef.current);
+            setPositions(updated);
+            const total = updated.reduce((acc, p) => acc + (p.livePnl ?? p.pnl), 0);
+            setTotalPnl(total);
+          }
+        }
       });
     };
 
@@ -77,6 +99,7 @@ const NetPositionPage = () => {
         socketRef.current.emit('unsubscribe_all', { mobile });
         socketRef.current.disconnect();
         socketRef.current = null;
+        socketConnectedRef.current = false;
       }
 
       axios
@@ -109,8 +132,8 @@ const NetPositionPage = () => {
           <PositionTable positions={positions} />
 
           <div className="block sm:hidden space-y-4 mt-4">
-            {positions.map((pos, i) => (
-              <PositionCard key={i} pos={pos} />
+            {positions.map((pos) => (
+              <PositionCard key={`${pos.tok}-${pos.exSeg}`} pos={pos} />
             ))}
           </div>
         </>

@@ -4,23 +4,16 @@ import Header from "./Header";
 
 const DashboardLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
-      {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Main content area */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Header */}        
+      <div className="flex flex-col flex-1">
         <Header toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-
-        {/* Content & Footer */}
-        <div className="flex flex-col flex-1 overflow-hidden">
-          {/* Scrollable Main */}
-          <main className="flex-1 overflow-y-auto p-4">{children}</main>
-
-          {/* Footer */}
+        <div className="flex flex-col flex-1 overflow-hidden scrollbar-hide">
+          <main className="flex-1 p-4 pt-20 overflow-hidden scrollbar-hide">{children}</main>
           <footer className="bg-gray-200 text-center text-sm text-gray-600 py-2">
             © {new Date().getFullYear()} Algo Platform. All rights reserved.
           </footer>

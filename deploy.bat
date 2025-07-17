@@ -2,9 +2,9 @@
 echo "# myalgoapp" >> README.md
 git init
 git add .
-git commit -m "net postion and order book apis added"
+git commit -m "options chanint added"
 git branch -M main
-git remote add origin https://github.com/mosinDataBase/myalgoapp.git
+REM git remote add origin https://github.com/mosinDataBase/myalgoapp.git
 git push -u origin main
 
 echo === Deploying the app ===

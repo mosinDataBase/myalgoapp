@@ -59,7 +59,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         </Link>
       </div>
 
-      <ul className="space-y-4">
+      <ul className="space-y-4 overflow-y-auto max-h-[calc(100vh-200px)] pr-2 scrollbar-hide">
         {menuItems.map((item) => (
           <li key={item.name}>
             <NavLink
