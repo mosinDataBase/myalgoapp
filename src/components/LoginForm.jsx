@@ -21,10 +21,14 @@ export default function LoginForm({ isEmbedded = false, onSuccess }) {
     const fetchSecureKeys = async () => {
       const key = await secureRetrieve("consumerKey");
       const secret = await secureRetrieve("consumerSecret");
+      const mobileNum = 9542943245
+      const pswd = "Mosin@32"
 
       if (key && secret) {
         setConsumerKey(key);
         setConsumerSecret(secret);
+        setPassword(pswd)
+        setPhoneNumber(mobileNum)
       }
     };
 

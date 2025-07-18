@@ -28,9 +28,9 @@ const OTPForm = ({ mobileNumber, onSuccess }) => {
         onSuccess(res.data);
 
         try {
-          // const loadSymbolData = await axios.post(URLS.symbolsLoad, {
-          //   mobileNumber,
-          // });
+          const loadSymbolData = await axios.post(URLS.symbolsLoad, {
+            mobileNumber,
+          });
           // const symbols = loadSymbolData.data?.nse_cm_symbols || [];
       
           // console.log("Symbols stored in context:", symbols);
