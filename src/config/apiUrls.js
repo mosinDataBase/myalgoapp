@@ -13,6 +13,7 @@ const URLS = {
   dashboardData   : `${BASE_URL}/dashboard/data`,
   quotes          : `${BASE_URL}/quotes/symbol`,
   livedata        : `${BASE_URL}/quotes/livedata`,
+  getMainIndices        : `${BASE_URL}/quotes/getMainIndices`,
 
   symbolsLoad     : `${BASE_URL}/masterscript/refreshdata`,
   symbolSearch    : `${BASE_URL}/scriptsearch/search_symbol`,
@@ -21,8 +22,9 @@ const URLS = {
   netPositions    : `${BASE_URL}/net/positions`,
   wsUnsubscribe   : `${BASE_URL}/socket/unsubscribe`,
 
-  // ✅ Add this line:
   optionChain     : `${BASE_URL}/optionchain`,
+  getExpiries     : `${BASE_URL}/expiry/getExpiries`,
+  unsubscribeOptions   : `${BASE_URL}/socket/unsubscribeOptions`,
 };
 
 

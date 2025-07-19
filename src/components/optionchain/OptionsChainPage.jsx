@@ -1,58 +1,78 @@
 import React, { useEffect, useRef, useState } from "react";
 import OptionChainHeader from "./OptionChainHeader";
 import OptionChainGrid from "./OptionChainGrid";
-import BottomBar from "./BottomBar";
+import useOptionChain from "../../hooks/useOptionChain";
+import { useIndices } from "../../contexts/IndicesContext";
 
 export default function OptionsChainPage() {
-  const [spotPrice, setSpotPrice] = useState(25300);
+  const [spotPrice, setSpotPrice] = useState(0);
   const [spotChange, setSpotChange] = useState(0);
   const [optionData, setOptionData] = useState([]);
-
+  const [selectedIndex, setSelectedIndex] = useState("Nifty");
   const spotPriceRef = useRef(spotPrice);
+  const {
+    optionChain,
+    liveQuotes,
+    expiries,
+    selectedExpiry,
+    setSelectedExpiry,
+    spotData,
+    loading,
+    fetchOptionChain,
+  } = useOptionChain(selectedIndex);
 
+  const { indicesContext } = useIndices();
 
-  const generateDummyData = (base) =>
-    Array.from({ length: 30 }, (_, i) => ({
-      strike: 24500 + i * 50,
-      callOi: 10000 + i * 500,
-      callLtp: (120 + i) + (Math.random() * 10 - 5),
-      putOi: 9000 + i * 400,
-      putLtp: (100 - i) + (Math.random() * 10 - 5),
-    }));
+  const handleIndexChange = (symbol) => {
+    setSelectedIndex(symbol);
+    // expiry + chain are handled via effect in hook
+  };
+
+  const handleExpiryChange = (expiry) => {
+    setSelectedExpiry(expiry); // updates expiry and triggers effect inside hook
+  };
 
   useEffect(() => {
-  const interval = setInterval(() => {
-    const change = Math.floor(Math.random() * 20 - 10); // ±10
-    const newPrice = spotPriceRef.current + change;
+    
+    if (!indicesContext || !Array.isArray(indicesContext)) return;
+    setOptionData(indicesContext)
+   localStorage.setItem("indicesContext", JSON.stringify(indicesContext));
+    const selected = indicesContext.find(
+      (item) => item.ts?.toLowerCase() === selectedIndex.toLowerCase()
+    );
 
-    spotPriceRef.current = newPrice;
-    setSpotPrice(newPrice);
-    setSpotChange(change);
-    setOptionData(generateDummyData(newPrice));
-  }, 2000);
+    if (selected) {
+      const ltp = parseFloat(selected.ltp);
+      const change = parseFloat(selected.cng);
+      setSpotPrice(ltp);
+      setSpotChange(change);
+    }
+  }, [indicesContext, selectedIndex]);
 
-  return () => clearInterval(interval);
-}, []);
+  return (
+    <div className="flex flex-col h-full">
+      {/* Sticky OptionChainHeader (second header) */}
+      <div className="sticky top-0 z-20 bg-gray-900 border-b border-gray-800">
+        <OptionChainHeader
+          selectedIndex={selectedIndex}
+          onIndexChange={handleIndexChange}
+          expiryList={expiries}
+          handleExpiryChange={handleExpiryChange}
+        />
+      </div>
 
-return (
-  <div className="flex flex-col h-full">
-    {/* Sticky OptionChainHeader (second header) */}
-    <div className="sticky top-0 z-20 bg-gray-900 border-b border-gray-800">
-      <OptionChainHeader />
+      {/* Column Headers - Sticky */}
+
+      {/* Scrollable Grid */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <OptionChainGrid
+          liveQuotes={liveQuotes}
+          selectedIndex={selectedIndex}
+          data={optionData}
+          spotPrice={spotPrice}
+          spotChange={spotChange}
+        />
+      </div>
     </div>
-
-     {/* Column Headers - Sticky */}
-      
-
-    {/* Scrollable Grid */}
-    <div className="flex-1 overflow-y-auto scrollbar-hide">
-      <OptionChainGrid
-        data={optionData}
-        spotPrice={spotPrice}
-        spotChange={spotChange}
-      />
-    </div>
-  </div>
-);
-
+  );
 }

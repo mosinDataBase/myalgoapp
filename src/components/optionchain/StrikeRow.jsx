@@ -1,30 +1,48 @@
 import React from "react";
 
-export default function StrikeRow({ data, isSpotRow = false, strikeDiff = 0 }) {
+export default function StrikeRow({ data, liveQuotes, isSpotRow = false, strikeDiff = 0 }) {
   if (!data) return null;
 
-  const { strike, callOi, callLtp, putLtp, putOi } = data;
+  const { ltp } = data;
 
-  const format = (val) => val?.toFixed(2);
+  // Extract strike from quote
+  const extractStrike = (ts) => {
+    const match = ts?.match(/(\d+)(CE|PE)$/);
+    return match ? match[1] : null;
+  };
+debugger
+  // Extract CE/PE quotes from liveQuotes matching this strike
+  const strike = parseFloat(ltp);
+  const ceQuote = liveQuotes?.find(q => extractStrike(q.ts) === `${strike}` && q.ts.endsWith("CE"));
+  const peQuote = liveQuotes?.find(q => extractStrike(q.ts) === `${strike}` && q.ts.endsWith("PE"));
 
-  // 🔵 Background coloring logic:
+  const getVal = (obj, shortKey, longKey, fallback = 0) =>
+    parseFloat(obj?.[shortKey] ?? obj?.[longKey] ?? fallback);
+
+  const callOi = getVal(ceQuote, "oi", "open_interest");
+  const callLtp = getVal(ceQuote, "ltp", "last_traded_price");
+  const putLtp = getVal(peQuote, "ltp", "last_traded_price");
+  const putOi = getVal(peQuote, "oi", "open_interest");
+
+  const format = (val) => parseFloat(val)?.toFixed(2);
+
   const ceBg = isSpotRow
     ? "bg-gray-800"
     : strikeDiff < 0
     ? "bg-gray-900"
-    : "bg-gray-700"; // CE darker above, lighter below
+    : "bg-gray-700";
 
   const peBg = isSpotRow
     ? "bg-gray-800"
     : strikeDiff < 0
     ? "bg-gray-700"
-    : "bg-gray-900"; // PE lighter above, darker below
+    : "bg-gray-900";
 
   const strikeBg = isSpotRow ? "bg-gray-800" : "bg-gray-900";
 
   return (
     <div className="grid grid-cols-5 text-center items-center text-sm border-b border-gray-700">
-      {/* CE OI with bar */}
+      {/* CE OI */}
       <div className={`flex flex-col items-center relative py-1 ${ceBg}`}>
         <span className="text-green-400">{format(callOi)}</span>
         <div
@@ -37,12 +55,12 @@ export default function StrikeRow({ data, isSpotRow = false, strikeDiff = 0 }) {
       <div className={`text-red-400 py-1 ${ceBg}`}>{format(callLtp)}</div>
 
       {/* Strike */}
-      <div className={`font-bold text-white py-1 ${strikeBg}`}>{strike}</div>
+      <div className={`font-bold text-white py-1 ${strikeBg}`}>{ltp}</div>
 
       {/* PE LTP */}
       <div className={`text-green-400 py-1 ${peBg}`}>{format(putLtp)}</div>
 
-      {/* PE OI with bar */}
+      {/* PE OI */}
       <div className={`flex flex-col items-center relative py-1 ${peBg}`}>
         <span className="text-red-400">{format(putOi)}</span>
         <div

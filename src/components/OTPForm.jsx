@@ -24,7 +24,7 @@ const OTPForm = ({ mobileNumber, onSuccess }) => {
       });
 
       if (res.status === 200) {
-        debugger
+        
         onSuccess(res.data);
 
         try {

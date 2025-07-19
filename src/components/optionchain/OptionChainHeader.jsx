@@ -1,24 +1,21 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import URLS from "../../config/apiUrls";
 import { INDEX_OPTIONS } from "../../utils/indexOptions";
-import useOptionChain from "../../hooks/useOptionChain";
 
-export default function OptionChainHeader() {
-  const [query, setQuery] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState("Nifty 50");
-
-  const { optionChain, spotData, loading, fetchOptionChain } = useOptionChain(selectedIndex);
-  const mobileNumber = localStorage.getItem("mobileNumber");
-
+export default function OptionChainHeader({
+  selectedIndex,
+  expiryList,
+  selectedExpiry,
+  handleExpiryChange,
+  onIndexChange,
+}) {
   const handleSelect = (symbol) => {
-    setQuery(symbol);
-    setSelectedIndex(symbol);
-    fetchOptionChain(symbol); // 🔁 trigger fetching new option chain
+    onIndexChange(symbol); // lift to parent
   };
 
   return (
-    <div style={{ top: "-22px", position: "relative" }} className="sticky top-0 z-50 bg-gray-900">
+    <div
+      style={{ top: "-22px", position: "relative" }}
+      className="sticky top-0 z-50 bg-gray-900"
+    >
       <div className="flex items-center justify-between px-4 py-1.5 bg-gray-800 border-b border-gray-700 shadow-md">
         <div className="relative flex items-center space-x-2 text-white">
           <select
@@ -35,12 +32,32 @@ export default function OptionChainHeader() {
         </div>
 
         <div className="flex items-center gap-2 text-sm">
-          <div className="bg-gray-700 px-2 py-1 rounded text-white">LTP & OI</div>
-          <div className="bg-gray-700 px-2 py-1 rounded text-gray-400">Greeks</div>
-          <select className="bg-gray-700 px-2 py-1 rounded text-white appearance-none focus:outline-none" defaultValue="2025-07-17">
-            <option value="2025-07-17">17 JUL 2025</option>
-            <option value="2025-07-24">24 JUL 2025</option>
-            <option value="2025-07-31">31 JUL 2025</option>
+          <div className="bg-gray-700 px-2 py-1 rounded text-white">
+            LTP & OI
+          </div>
+          <div className="bg-gray-700 px-2 py-1 rounded text-gray-400">
+            Greeks
+          </div>
+          <select
+            value={selectedExpiry}
+            onChange={(e) => handleExpiryChange(e.target.value)}
+            className="bg-gray-700 px-2 py-1 rounded text-white appearance-none focus:outline-none"
+          >
+            {expiryList.map((expiry, index) => {
+              const adjustedExpiry = (Number(expiry) + 315513000) * 1000; // convert to ms
+              const date = new Date(adjustedExpiry);
+              const display = date.toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }); // e.g., "31 Jul 2025"
+
+              return (
+                <option key={index} value={expiry}>
+                  {display}
+                </option>
+              );
+            })}
           </select>
           <div className="bg-gray-700 px-2 py-1 rounded text-white">Charts</div>
         </div>

@@ -20,7 +20,7 @@ const SupportPage = () => {
     e.preventDefault();
 
     // You can integrate with backend ticket system or email API here
-    console.log("Support request submitted:", form);
+ 
 
     setSubmitted(true);
   };

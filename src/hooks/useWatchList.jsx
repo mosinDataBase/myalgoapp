@@ -94,7 +94,7 @@ export default function useWatchList() {
         try {
           const res = await axios.get(URLS.symbols);
           const symbols = res.data.symbols || [];
-          console.log("symbols", symbols);
+        
           setAllSymbols(symbols);
           saveAllSymbols(symbols);
         } catch (err) {
@@ -131,7 +131,7 @@ export default function useWatchList() {
       const res = await axios.post(URLS.quotes, { mobileNumber, symbol });
       const data = res.data?.data?.data?.[0];
       const rawData = res.data;
-      console.log("rawData", rawData);
+      
       return data;
     } catch (err) {
       showToast({

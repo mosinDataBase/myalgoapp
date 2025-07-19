@@ -21,7 +21,7 @@ const TradeSettingsPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // You can send settings to backend API here
-    console.log('Updated Trade Settings:', settings);
+ 
     alert('Trade settings updated successfully.');
   };
 

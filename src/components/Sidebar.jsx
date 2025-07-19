@@ -17,8 +17,22 @@ import {
 } from "react-icons/md";
 import { Link, NavLink } from "react-router-dom";
 import logo from "../assets/logo512-bg-remove.png";
+import { Switch } from "@headlessui/react";
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({
+  isOpen,
+  onClose,
+  toggleSidebar,
+  indices,
+  tradingStarted,
+  setTradingStarted,
+  toggleUserMenu,
+  userMenuOpen,
+  handleMouseEnter,
+  handleMouseLeave,
+  handleLogout,
+  userData,
+}) => {
   const menuItems = [
     { name: "Home", icon: <FaChartLine />, path: "/dashboard" },
     { name: "Watch List", icon: <FaChartLine />, path: "/watchlist" },
@@ -57,6 +71,25 @@ const Sidebar = ({ isOpen, onClose }) => {
         <Link to="/dashboard">
           <img src={logo} alt="MyALGOFOX Logo" className="w-36 mx-auto" />
         </Link>
+        <div className="block sm:hidden  flex items-center gap-4">
+          <span className="text-sm text-gray-700 dark:text-gray-300">
+            Trading is Started
+          </span>
+
+          <Switch
+            checked={tradingStarted}
+            onChange={setTradingStarted}
+            className={`${
+              tradingStarted ? "bg-green-500" : "bg-gray-400"
+            } relative inline-flex h-6 w-11 items-center rounded-full transition`}
+          >
+            <span
+              className={`${
+                tradingStarted ? "translate-x-6" : "translate-x-1"
+              } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+            />
+          </Switch>
+        </div>
       </div>
 
       <ul className="space-y-4 overflow-y-auto max-h-[calc(100vh-200px)] pr-2 scrollbar-hide">
@@ -78,13 +111,39 @@ const Sidebar = ({ isOpen, onClose }) => {
         ))}
       </ul>
 
-      {/* WhatsApp Icon */}
+      {/* Mobile-only: User Info + Logout */}
+      <div className="flex items-center justify-between w-full px-4 py-3 border-t border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm">
+            <span role="img" aria-label="User">
+              👤
+            </span>
+          </div>
+          <span className="text-gray-700 text-sm font-medium">
+            {userData?.greetingName || "User"}
+          </span>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="text-sm text-red-600 hover:underline"
+        >
+          Logout
+        </button>
+      </div>
+
+      {/* WhatsApp Icon - bottom left */}
       <div className="absolute bottom-5 left-5">
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-          alt="WhatsApp"
-          className="w-8 h-8"
-        />
+        <a
+          href="https://wa.me/919999999999" // Replace with actual number
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+            alt="WhatsApp"
+            className="w-8 h-8"
+          />
+        </a>
       </div>
     </div>
   );

@@ -3,13 +3,22 @@ import StrikeRow from "./StrikeRow";
 import SpotPriceBar from "./SpotPriceBar";
 import BottomBar from "./BottomBar";
 
-export default function OptionChainGrid({ data = [], spotChange, spotPrice }) {
+export default function OptionChainGrid({ data = [], selectedIndex,liveQuotes = [], spotChange, spotPrice }) {
   const spotRowRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const scrollTimeoutRef = useRef(null);
+const STRIKE_STEP_MAP = {
+  NIFTY: 50,
+  BANKNIFTY: 100,
+  FINNIFTY: 50,
+  MIDCPNIFTY: 75,
+  // default fallback
+  DEFAULT: 50
+};
 
-  const roundedSpot = Math.round(spotPrice / 50) * 50;
+const stepSize = STRIKE_STEP_MAP[selectedIndex.toUpperCase()] || STRIKE_STEP_MAP.DEFAULT;
+const roundedSpot = Math.round(spotPrice / stepSize) * stepSize;
 
   // Auto scroll on load or re-enable
   useEffect(() => {
@@ -70,6 +79,7 @@ export default function OptionChainGrid({ data = [], spotChange, spotPrice }) {
               <div ref={isSpotRow ? spotRowRef : null}>
                 <StrikeRow
                   data={row}
+                  liveQuotes ={liveQuotes}
                   strikeDiff={strikeDiff}
                   isSpotRow={isSpotRow}
                 />

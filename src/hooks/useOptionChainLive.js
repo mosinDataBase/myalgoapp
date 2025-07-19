@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import URLS from "../config/apiUrls";
 import { showToast } from "../utils/alerts";
 
-export default function useOptionChainLive(selectedIndexSymbol, setLiveQuotes) {
+export default function useOptionChainLive({selectedIndexSymbol, setLiveQuotes}) {
   const socketRef = useRef(null);
   const liveMapRef = useRef({});
   const mobile = useRef(localStorage.getItem("mobileNumber"));
@@ -28,18 +28,19 @@ export default function useOptionChainLive(selectedIndexSymbol, setLiveQuotes) {
 
     socket.on("connect", () => {
       console.log("🔗 Option chain socket connected");
+      socket.emit("register_mobile", { mobile: mobile.current });
     });
 
-    socket.on("option_quotes_update", (payload) => { debugger
+    socket.on("option_quotes_update", (payload) => { 
       try {
-        console.log("payload:",payload)
+   
         if (!Array.isArray(payload?.data)) return;
 
         let hasUpdates = false;
         const newQuotesMap = { ...liveMapRef.current };
 
         payload.data.forEach((quote) => {
-          const key = `${quote.instrument_token}-${quote.exchange_segment}`;
+          const key = `${quote.ts}-${quote.e}`;
           const existing = liveMapRef.current[key];
 
           if (!existing || existing.ltp !== quote.ltp) {
@@ -75,12 +76,12 @@ export default function useOptionChainLive(selectedIndexSymbol, setLiveQuotes) {
         }
 
         // Also inform backend to clean up subscriptions
-        fetch(URLS.wsUnsubscribe, {
+        fetch(URLS.unsubscribeOptions, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ mobile: mobile.current }),
         }).catch((err) => console.warn("Backend unsubscribe failed:", err));
-      }, 20000); // 🔁 Add a 1 second grace period
+      }, 1000); // 🔁 Add a 1 second grace period
     };
   }, [selectedIndexSymbol]);
 }

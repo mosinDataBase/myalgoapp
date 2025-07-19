@@ -43,7 +43,7 @@ export async function filterSymbols({ searchTerm, watchList = [] }) {
   } catch (e) {
     console.warn("Name index not found", e);
   }
-  console.log("search results", results);
+
   return results.slice(0, 50);
 }
 

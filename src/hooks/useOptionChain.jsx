@@ -10,10 +10,34 @@ export default function useOptionChain(selectedIndexSymbol) {
   const [spotData, setSpotData] = useState(null);
   const [liveQuotes, setLiveQuotes] = useState([]);
   const mobileNumber = localStorage.getItem("mobileNumber");
+  const [expiries, setExpiries] = useState([]);
+  const [selectedExpiry, setSelectedExpiry] = useState(null); // 🆕 Add expiry state
   const strikePrice = 25953;
 
-  const fetchOptionChain = useCallback(async (symbol = selectedIndexSymbol) => {
-    if (!symbol) return;
+  const fetchExpiries = useCallback(async (symbol = selectedIndexSymbol) => {
+    try {
+      const res = await axios.get(URLS.getExpiries, {
+        params: {
+          symbol,
+          segment: "nse_fo",
+        },
+      });
+      const fetched = res?.data?.expiries || [];
+      setExpiries(fetched);
+      if (fetched.length > 0) {
+        setSelectedExpiry(fetched[0]); // default to first expiry
+      }
+    } catch (err) {
+      showToast({
+        type: "error",
+        title: "Expiry Fetch Failed",
+        text: err?.response?.data?.message || "Failed to fetch expiry dates.",
+      });
+    }
+  }, [selectedIndexSymbol]);
+
+  const fetchOptionChain = useCallback(async (symbol = selectedIndexSymbol, expiry = selectedExpiry) => {
+    if (!symbol || !expiry) return;
 
     setLoading(true);
     try {
@@ -22,18 +46,14 @@ export default function useOptionChain(selectedIndexSymbol) {
         symbol,
         strikePrice,
         segment: "nse_fo",
+        expiry, // 🆕 Send expiry
       });
-
-      const spot = res?.data?.data?.data?.[0];
-      setSpotData(spot);
-
-      await axios.post(URLS.quotesLive, {
-        mobileNumber,
-        symbols: [symbol],
-      });
-
+      debugger
+      const livetokens = res?.data?.tokens;
+     
+       localStorage.setItem("livetokens", JSON.stringify(livetokens));
+      
     } catch (err) {
-      console.log("Error fetching option chain", err?.response?.data);
       showToast({
         type: "error",
         title: "Fetch Failed",
@@ -42,22 +62,31 @@ export default function useOptionChain(selectedIndexSymbol) {
     } finally {
       setLoading(false);
     }
-  }, [mobileNumber, selectedIndexSymbol]);
+  }, [mobileNumber, selectedIndexSymbol, selectedExpiry]);
 
-  // ✅ Live quote updates
-  //useOptionChainLive({selectedIndexSymbol,setLiveQuotes});
+  useOptionChainLive({ selectedIndexSymbol, setLiveQuotes });
 
   useEffect(() => {
     if (selectedIndexSymbol) {
-      fetchOptionChain(selectedIndexSymbol);
+      fetchExpiries(selectedIndexSymbol);
     }
-  }, [selectedIndexSymbol, fetchOptionChain]);
+  }, [selectedIndexSymbol, fetchExpiries]);
+
+  useEffect(() => {
+    if (selectedIndexSymbol && selectedExpiry) {
+      fetchOptionChain(selectedIndexSymbol, selectedExpiry);
+    }
+  }, [selectedIndexSymbol, selectedExpiry, fetchOptionChain]);
 
   return {
     loading,
     spotData,
     optionChain,
     fetchOptionChain,
-    liveQuotes, // 🔁 Expose for UI if needed
+    liveQuotes,
+    expiries,
+    selectedExpiry,
+    setSelectedExpiry, // 🆕 expose setter to parent
   };
 }
+
