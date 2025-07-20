@@ -20,6 +20,7 @@ import BroadcastMessagesPage from './pages/BroadcastMessagesPage';
 import SupportPage from './pages/SupportPage';
 import DashboardPage from './pages/DashboardPage';
 import NetPositionPage from './components/NetPosition/NetPositionPage';
+import ConfirmOrderPage from './pages/strategies/ConfirmOrderPage';
 
 
 const App = () => {
@@ -120,6 +121,19 @@ const App = () => {
             </PrivateRoute>
           }
         />
+   
+
+        <Route
+          path="/confirmOrder"
+          element={
+            <PrivateRoute>
+              <DashboardLayout>
+                <ConfirmOrderPage />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/option-analytics"
           element={

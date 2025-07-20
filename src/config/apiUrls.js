@@ -20,6 +20,8 @@ const URLS = {
 
   orderLogs       : `${BASE_URL}/execute-orders/orders`,
   netPositions    : `${BASE_URL}/net/positions`,
+  placeOrder      : `${BASE_URL}/order/placeOrder`,  
+
   wsUnsubscribe   : `${BASE_URL}/socket/unsubscribe`,
 
   optionChain     : `${BASE_URL}/optionchain`,

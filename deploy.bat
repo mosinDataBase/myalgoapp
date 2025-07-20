@@ -11,5 +11,5 @@ echo === Deploying the app ===
 REM Step 7: Build and Deploy to GitHub Pages
 call npm run deploy
 
-echo === ✅ Deployment Complete ===
+echo ===  Deployment Complete ===
 pause

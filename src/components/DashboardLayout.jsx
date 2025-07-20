@@ -10,7 +10,7 @@ import { IndicesProvider, useIndices } from "../contexts/IndicesContext"; // ✅
 
 const DashboardLayoutContent = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { indices, loading } = useMainIndex();
+  const { indices } = useMainIndex();
   const { setIndicesContext } = useIndices(); // ✅ context setter
   const navigate = useNavigate();
 
