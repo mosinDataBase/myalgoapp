@@ -4,6 +4,7 @@ import useWatchList from "../hooks/useWatchList";
 import MobileStockCard from "./mobile/MobileStockCard";
 import { FaPlusCircle } from "react-icons/fa";
 import { FiX } from "react-icons/fi";
+import { showToast } from "../utils/alerts";
 
 const WatchListPage = () => {
   const {
@@ -280,10 +281,14 @@ const WatchListPage = () => {
               key={index}
               stock={stock}
               removeFromWatchList={removeFromWatchList}
-              onAddToOrder={handleAddToOrder}
+              onAddToOrder={(symbol, qty, price) => {
+                setQuantity(qty);
+                setLimitPrice(price);
+                openModal(symbol, "Buy"); // You can add a way to choose Buy/Sell if needed
+              }}
               onConfirm={handleConfirmAction}
-              onChangeQty={handleQuantityChange}
-              onChangePrice={handlePriceChange}
+              onChangeQty={setQuantity}
+              onChangePrice={setLimitPrice}
               showToast={showToast}
             />
           ))
