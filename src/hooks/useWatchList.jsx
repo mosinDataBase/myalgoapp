@@ -8,10 +8,18 @@ import useDebounce from "../utils/useDebounce";
 import { io } from "socket.io-client";
 
 export default function useWatchList() {
-
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredSymbols, setFilteredSymbols] = useState([]);
   const [watchListToken, setWatchListToken] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [actionType, setActionType] = useState(""); // 'Buy' or 'Sell'
+  const [priceType, setPriceType] = useState("Market"); // or "Limit"
+  const [limitPrice, setLimitPrice] = useState("");
+  const [selectedStock, setSelectedStock] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+
+
+
   const searchRef = useRef(null);
   const debouncedTerm = useDebounce(searchTerm, 50);
   const mobileNumber = localStorage.getItem("mobileNumber");
@@ -21,7 +29,6 @@ export default function useWatchList() {
   const isWatchListPage = location.pathname === "/watchlist";
 
   const [watchList, setWatchList] = useState([]);
-
 
   const socketRef = useRef(null);
 
@@ -193,26 +200,25 @@ export default function useWatchList() {
     }
   };
 
- 
   useEffect(() => {
-  if (watchList.length > 0) {
-    localStorage.setItem("watchList", JSON.stringify(watchList));
-  }
-}, [watchList]);
-
-useEffect(() => {
-  const storedList = localStorage.getItem("watchList");
-  if (storedList) {
-    try {
-      const parsedList = JSON.parse(storedList);
-      setWatchList(parsedList);
-    } catch (err) {
-      console.error("Failed to parse watchList from localStorage", err);
+    if (watchList.length > 0) {
+      localStorage.setItem("watchList", JSON.stringify(watchList));
     }
-  }
-}, []);
+  }, [watchList]);
 
-const handleBuy = (symbol) => {
+  useEffect(() => {
+    const storedList = localStorage.getItem("watchList");
+    if (storedList) {
+      try {
+        const parsedList = JSON.parse(storedList);
+        setWatchList(parsedList);
+      } catch (err) {
+        console.error("Failed to parse watchList from localStorage", err);
+      }
+    }
+  }, []);
+
+  const handleBuy = (symbol) => {
     console.log("Buy", symbol);
     // Open buy modal or redirect to buy page here
   };
@@ -223,8 +229,72 @@ const handleBuy = (symbol) => {
     // Open sell modal or redirect to sell page here
   };
 
+  // Open modal on Buy/Sell click
+  const openModal = (stock, type) => {
+    setSelectedStock(stock);
+    setActionType(type);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setSelectedStock(null);
+    setActionType("");
+  };
+
+  const handleConfirmAction = () => {
+  try {
+    const priceInfo =
+      priceType === "Market"
+        ? "at Market Price"
+        : `at ₹${parseFloat(limitPrice).toFixed(2)}`;
+
+    const orderText = `${quantity} Qty of ${selectedStock} has been ${actionType.toLowerCase()}ed ${priceInfo}.`;
+
+    // Show toast in app
+    showToast({
+      type: "success",
+      title: `${actionType} Order Placed`,
+      text: orderText,
+    });
+
+    // Show system/browser notification
+    if (Notification.permission === "granted") {
+      new Notification(`${actionType} Order Placed`, {
+        body: orderText,
+        icon: "/favicon.ico", // optional: replace with your app's icon
+      });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          new Notification(`${actionType} Order Placed`, {
+            body: orderText,
+            icon: "/favicon.ico",
+          });
+        }
+      });
+    }
+
+  } catch (err) {
+    showToast({
+      type: "error",
+      title: "Order Failed",
+      text: err?.response?.data?.message || "Something went wrong.",
+    });
+  } finally {
+    closeModal();
+  }
+};
+
+
 
   return {
+    openModal,
+    selectedStock,
+    actionType,
+    modalOpen,
+    closeModal,
+    handleConfirmAction,
     handleBuy,
     handleSell,
     searchRef,
@@ -234,5 +304,11 @@ const handleBuy = (symbol) => {
     watchList,
     addToWatchList,
     removeFromWatchList,
+    priceType,
+    setPriceType,
+    limitPrice,
+    setLimitPrice,
+    quantity, 
+    setQuantity
   };
 }
