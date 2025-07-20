@@ -111,25 +111,24 @@ const Sidebar = ({
         ))}
       </ul>
 
-      {/* Mobile-only: User Info + Logout */}
-      <div className="flex items-center justify-between w-full px-4 py-3 border-t border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm">
-            <span role="img" aria-label="User">
-              👤
-            </span>
-          </div>
-          <span className="text-gray-700 text-sm font-medium">
-            {userData?.greetingName || "User"}
-          </span>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="text-sm text-red-600 hover:underline"
-        >
-          Logout
-        </button>
-      </div>
+     {/* Mobile-only: User Info + Logout */}
+<div className="block md:hidden flex items-center justify-between w-full px-4 py-3 border-t border-gray-200">
+  <div className="flex items-center gap-3">
+    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm">
+      <span role="img" aria-label="User">👤</span>
+    </div>
+    <span className="text-gray-700 text-sm font-medium">
+      {userData?.greetingName || "User"}
+    </span>
+  </div>
+  <button
+    onClick={handleLogout}
+    className="text-sm text-red-600 hover:underline"
+  >
+    Logout
+  </button>
+</div>
+
 
       {/* WhatsApp Icon - bottom left */}
       <div className="absolute bottom-5 left-5">

@@ -89,12 +89,10 @@ const DashboardLayoutContent = ({ children }) => {
           toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         />
 
-        <div style={{marginTop: "2%"}} className="flex flex-col flex-1 overflow-hidden scrollbar-hide">
-          <main className="flex-1 p-4 pt-20 overflow-hidden scrollbar-hide">
-            {children}
-          </main>
+        <div className="flex flex-col flex-1 h-full">
+          <main className="flex-1 scrollbar-hide overflow-auto p-4 pt-20">{children}</main>
           <footer className="bg-gray-200 text-center text-sm text-gray-600 py-2">
-            © {new Date().getFullYear()} Algo Platform. All rights reserved.
+            © {new Date().getFullYear()} AlgoFox Platform. All rights reserved.
           </footer>
         </div>
       </div>

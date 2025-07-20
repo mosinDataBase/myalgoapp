@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaChessBoard } from "react-icons/fa"; // Optional: Icon for flair
 
 const StrategySelector = () => {
   const [selectedStrategies, setSelectedStrategies] = useState([]);
@@ -24,22 +25,28 @@ const StrategySelector = () => {
   };
 
   return (
-    <div className="bg-white shadow-sm rounded p-2 w-full max-w-xs">
-      <div className="text-sm font-medium text-gray-700 mb-2">Strategies</div>
-      <div className="grid grid-cols-2 gap-1">
-        {strategies.map((strategy) => (
-          <span
-            key={strategy.value}
-            onClick={() => toggleStrategy(strategy.value)}
-            className={`text-xs px-2 py-1 rounded cursor-pointer text-center transition ${
-              selectedStrategies.includes(strategy.value)
-                ? "bg-blue-500 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            {strategy.name}
-          </span>
-        ))}
+    <div className="bg-white shadow-md rounded-lg p-4 w-full max-w-sm border border-gray-200">
+      <div className="flex items-center mb-3">
+        <FaChessBoard className="text-blue-600 mr-2" />
+        <h2 className="text-md font-semibold text-gray-800">Select a Strategy</h2>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {strategies.map((strategy) => {
+          const isSelected = selectedStrategies.includes(strategy.value);
+          return (
+            <button
+              key={strategy.value}
+              onClick={() => toggleStrategy(strategy.value)}
+              className={`text-sm font-medium px-3 py-2 rounded-full border transition duration-200 ease-in-out ${
+                isSelected
+                  ? "bg-blue-600 text-white border-blue-700 shadow"
+                  : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+              }`}
+            >
+              {strategy.name}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
