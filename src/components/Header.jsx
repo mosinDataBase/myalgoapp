@@ -115,7 +115,7 @@ const Header = ({ toggleSidebar, userData, handleLogout }) => {
       {/* Right side controls */}
       <div
         className="flex items-center gap-4 hidden sm:flex"
-        style={{ marginLeft: "5%" }}
+        style={{ marginLeft: "-1%" }}
       >
         <span className="text-sm text-gray-700 dark:text-gray-300">
           Trading is Started

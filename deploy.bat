@@ -2,7 +2,7 @@
 echo "# myalgoapp" >> README.md
 git init
 git add .
-git commit -m "main indexs added"
+git commit -m "watch list added"
 git branch -M main
 git remote add origin https://github.com/mosinDataBase/myalgoapp.git
 git push -u origin main

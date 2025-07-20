@@ -13,7 +13,11 @@ const WatchListPage = () => {
     watchList,
     addToWatchList,
     removeFromWatchList,
+     handleBuy,
+    handleSell,
   } = useWatchList();
+
+  
 
   return (
     <div className="p-6">
@@ -29,7 +33,8 @@ const WatchListPage = () => {
           onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
           className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-        {filteredSymbols.length > 0 && (
+        {searchTerm.length >= 3 && filteredSymbols.length > 0 && (
+
           <div className="absolute z-50 inset-x-0 bg-white border border-gray-300 rounded-b-lg shadow-lg max-h-64 overflow-y-auto text-sm">
             <table className="w-full table-fixed">
               <thead className="bg-gray-50 sticky top-0 text-gray-600">
@@ -42,15 +47,15 @@ const WatchListPage = () => {
               <tbody>
                 {filteredSymbols.map((s) => (
                   <tr
-                    key={s.symbol}
+                    key={s.pSymbol}
                     className="hover:bg-blue-50 border-t cursor-pointer"
-                    onClick={() => addToWatchList(s.symbol)}
+                    onClick={() => addToWatchList(s.pSymbolName)}
                   >
                     <td className="px-2 py-2 truncate">
-                      {s.name.toUpperCase()}
+                      {s.pDesc.toUpperCase()}
                     </td>
                     <td className="px-2 py-2 text-gray-700 truncate">
-                      {s.symbol.toUpperCase()}
+                      {s.pSymbolName.toUpperCase()}
                     </td>
                     <td className="px-2 py-2 text-right text-blue-600 hover:text-blue-800">
                       <FaPlusCircle className="inline-block text-lg" />
@@ -82,38 +87,75 @@ const WatchListPage = () => {
           </thead>
           <tbody>
             {watchList.map((stock, index) => (
-              <tr
-                key={index}
-                className={`border-t ${
-                  stock.change < 0 ? "bg-red-50" : "bg-green-50"
-                }`}
-              >
-                <td className="px-4 py-2 font-medium">{stock.symbol}</td>
-                <td className="px-4 py-2">{stock.ltp.toFixed(2)}</td>
-                <td className="px-4 py-2">{stock.change.toFixed(2)}</td>
-                <td
-                  className={`px-4 py-2 ${
-                    stock.change < 0 ? "text-red-600" : "text-green-600"
-                  }`}
-                >
-                  {stock.change > 0 && "+"}
-                  {stock.changePercent.toFixed(2)}%
-                </td>
-                <td className="px-4 py-2">{stock.ohlc.open || "-"}</td>
-                <td className="px-4 py-2">{stock.ohlc.high || "-"}</td>
-                <td className="px-4 py-2">{stock.ohlc.low || "-"}</td>
-                <td className="px-4 py-2">{stock.ohlc.close || "-"}</td>
-                <td className="px-4 py-2">
-                  <button
-                    onClick={() => removeFromWatchList(stock.symbol)}
-                    className="text-red-500 hover:text-red-700 text-xl"
-                    title="Remove from Watchlist"
-                  >
-                    <MdDeleteOutline />
-                  </button>
-                </td>
-              </tr>
-            ))}
+  <tr
+    key={index}
+    className={`border-t group  ${
+      stock.change < 0 ? "bg-red-50" : "bg-green-50"
+    }`}
+  >
+    <td className="px-4 py-2 font-medium">{stock.symbol}</td>
+
+    <td className="px-4 py-2">
+      {isFinite(stock.ltp) ? stock.ltp.toFixed(2) : "-"}
+    </td>
+
+    <td className="px-4 py-2">
+      {isFinite(stock.change) ? stock.change.toFixed(2) : "-"}
+    </td>
+
+    <td
+      className={`px-4 py-2 ${
+        stock.change < 0 ? "text-red-600" : "text-green-600"
+      }`}
+    >
+      {stock.change > 0 ? "+" : ""}
+      {isFinite(stock.changePercent) ? stock.changePercent.toFixed(2) : "0.00"}%
+    </td>
+
+    <td className="px-4 py-2">
+      {isFinite(stock.ohlc.open) ? stock.ohlc.open.toFixed(2) : "-"}
+    </td>
+
+    <td className="px-4 py-2">
+      {isFinite(stock.ohlc.high) ? stock.ohlc.high.toFixed(2) : "-"}
+    </td>
+
+    <td className="px-4 py-2">
+      {isFinite(stock.ohlc.low) ? stock.ohlc.low.toFixed(2) : "-"}
+    </td>
+
+    <td className="px-4 py-2">
+      {isFinite(stock.ohlc.close) ? stock.ohlc.close.toFixed(2) : "-"}
+    </td>
+
+    <td className="px-4 py-2">
+  <div className="flex space-x-2 items-center opacity-60 group-hover:opacity-100 transition-opacity duration-200">
+    <button
+      className="px-3 py-1 rounded bg-green-100 text-green-800 hover:bg-green-600 hover:text-white transition-colors"
+      onClick={() => handleBuy(stock.symbol)}
+    >
+      Buy
+    </button>
+    <button
+      className="px-3 py-1 rounded bg-red-100 text-red-800 hover:bg-red-600 hover:text-white transition-colors"
+      
+      onClick={() => handleSell(stock.symbol)}
+    >
+      Sell
+    </button>
+    <button
+      onClick={() => removeFromWatchList(stock.symbol)}
+      className="text-red-500 hover:text-red-700 text-xl"
+      title="Remove from Watchlist"
+    >
+      <MdDeleteOutline />
+    </button>
+  </div>
+</td>
+
+  </tr>
+))}
+
           </tbody>
         </table>
       </div>

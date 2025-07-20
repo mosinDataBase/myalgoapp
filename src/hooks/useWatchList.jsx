@@ -4,135 +4,75 @@ import { useLocation } from "react-router-dom";
 import axios from "axios";
 import URLS from "../config/apiUrls";
 import { showToast, showConfirmDialog } from "../utils/alerts";
-import { filterSymbols, normalizeSymbolData } from "../utils/searchUtils";
 import useDebounce from "../utils/useDebounce";
 import { io } from "socket.io-client";
-import {
-  saveAllSymbols,
-  getAllSymbols,
-  saveWatchSymbol,
-  deleteWatchSymbol,
-  getAllWatchSymbols,
-} from "../utils/allSymbolDB";
 
 export default function useWatchList() {
-  const [watchList, setWatchList] = useState([]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredSymbols, setFilteredSymbols] = useState([]);
-  const [allSymbols, setAllSymbols] = useState([]);
+  const [watchListToken, setWatchListToken] = useState([]);
   const searchRef = useRef(null);
   const debouncedTerm = useDebounce(searchTerm, 50);
   const mobileNumber = localStorage.getItem("mobileNumber");
+  const mobile = useRef(localStorage.getItem("mobileNumber"));
 
   const location = useLocation();
   const isWatchListPage = location.pathname === "/watchlist";
 
+  const [watchList, setWatchList] = useState([]);
+
+
   const socketRef = useRef(null);
 
-  useEffect(() => {
-    if (!watchList.length || !mobileNumber || !isWatchListPage) return;
-
-    const tokens = watchList.map((item) => ({
-      instrument_token: item.token,
-      exchange_segment: item.segment,
-    }));
-
-    // Send subscription request
-    axios.post(`${URLS.livedata}`, {
-      tokens,
-      mobile: mobileNumber,
-    });
-
-    if (!socketRef.current) {
-      socketRef.current = io(URLS.websocket);
-    }
-
-    socketRef.current.on("price_update", (msg) => {
-      setWatchList((prev) =>
-        prev.map((item) =>
-          item.token === msg.tk
-            ? {
-                ...item,
-                ltp: msg.ltp ?? item.ltp,
-                change: msg.cng ?? item.change,
-                changePercent: msg.nc ?? item.changePercent,
-                ohlc: {
-                  open: msg.op ?? item.ohlc.open,
-                  high: msg.h ?? item.ohlc.high,
-                  low: msg.lo ?? item.ohlc.low,
-                  close: msg.c ?? item.ohlc.close,
-                },
-              }
-            : item
-        )
-      );
-    });
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-    };
-  }, [watchList, mobileNumber, isWatchListPage]);
-
-  useEffect(() => {
-    const loadWatchList = async () => {
-      const saved = await getAllWatchSymbols();
-      setWatchList(saved || []);
-    };
-    loadWatchList();
-  }, []);
-
   // Fetch and cache symbols
-  useEffect(() => {
-    const loadSymbols = async () => {
-      const cached = await getAllSymbols();
-      if (cached.length > 0) {
-        setAllSymbols(cached);
-      } else {
-        try {
-          const res = await axios.get(URLS.symbols);
-          const symbols = res.data.symbols || [];
-        
-          setAllSymbols(symbols);
-          saveAllSymbols(symbols);
-        } catch (err) {
-          console.error("Symbol fetch failed", err);
-        }
-      }
-    };
-    loadSymbols();
-  }, []);
+
+  const loadSymbols = async (query) => {
+    if (!query || query.length < 3) return; // only trigger when 3+ characters typed
+
+    try {
+      const res = await axios.post(URLS.symbolSearch, {
+        q: query,
+        segment: "nse_cm",
+        phone: mobileNumber,
+      });
+      return res.data || [];
+    } catch (err) {
+      console.error("Symbol fetch failed", err);
+    }
+  };
 
   // Filter symbol list on input
   useEffect(() => {
     const fetchFiltered = async () => {
-      if (!debouncedTerm || allSymbols.length === 0) {
+      if (!debouncedTerm || debouncedTerm.length < 3) {
         setFilteredSymbols([]);
         return;
       }
-      if (searchTerm.length >= 3) {
-        const results = await filterSymbols({
-          searchTerm: debouncedTerm,
-          allSymbols,
-          watchList,
-        });
-
-        setFilteredSymbols(results);
+      if (debouncedTerm.length >= 3 && searchTerm.length >= 3) {
+        const symbolRes = await loadSymbols(debouncedTerm);
+        console.log(symbolRes);
+        setFilteredSymbols(symbolRes);
       }
     };
 
     fetchFiltered();
-  }, [debouncedTerm, allSymbols, watchList]);
+  }, [debouncedTerm, watchList]);
 
   const fetchSymbolData = async (symbol) => {
     try {
-      const res = await axios.post(URLS.quotes, { mobileNumber, symbol });
-      const data = res.data?.data?.data?.[0];
+      const res = await axios.post(URLS.quotes, {
+        mobileNumber,
+        symbol,
+        expiry: "0", // or whichever expiry you're targeting
+        segment: "nse_cm", // or "nse_fo", "mcx_fo", etc.
+      });
+
+      const tokens = res.data?.tokens;
+      const data = res.data?.data;
       const rawData = res.data;
-      
-      return data;
+      setWatchListToken(tokens);
+      return rawData;
     } catch (err) {
       showToast({
         type: "error",
@@ -143,30 +83,97 @@ export default function useWatchList() {
     }
   };
 
-  const addToWatchList = async (symbol) => {
-    const rawData = await fetchSymbolData(symbol);
+  const handleAddToWatchList = (selectedPsymbol) => {
+    const symbolData = filteredSymbols.find(
+      (item) => item.pSymbolName === selectedPsymbol
+    );
 
-    const data = normalizeSymbolData(rawData, symbol);
+    if (!symbolData) return;
 
-    if (!data) {
+    const newItem = {
+      token: symbolData.pSymbol,
+      symbol: symbolData.pSymbolName,
+      exchSeg: symbolData.pExchSeg,
+      ltp: 0,
+      change: 0,
+      changePercent: 0,
+      ohlc: {},
+    };
+
+    setWatchList((prev) => [...prev, newItem]);
+
+    // TODO: subscribe to WebSocket here if needed
+  };
+
+  const addToWatchList = async (pSymbol) => {
+    const rawData = await fetchSymbolData(pSymbol);
+
+    if (!rawData) {
       showToast({
         type: "error",
         title: "Invalid Symbol",
-        text: `No valid data for ${symbol.toUpperCase()}`,
+        text: `No valid data for ${pSymbol}`,
       });
       return;
     }
+    handleAddToWatchList(pSymbol);
+    // ✅ Ensure socket is connected and listening
+    if (!socketRef.current) {
+      socketRef.current = io(URLS.socketBase, { transports: ["websocket"] });
 
-    setWatchList((prev) => {
-      if (!prev.some((item) => item.symbol === data.symbol)) {
-        saveWatchSymbol(data);
-        return [...prev, data];
-      }
-      return prev;
-    });
+      socketRef.current.on("connect", () => {
+        console.log("🔗 Option chain socket connected");
+        socketRef.current.emit("register_mobile", { mobile: mobile.current });
+      });
+
+      socketRef.current.on("quotes_quotes_update", (msg) => {
+        handleQuoteUpdate(msg);
+      });
+    }
 
     setSearchTerm("");
     setFilteredSymbols([]);
+  };
+
+  const handleQuoteUpdate = (msg) => {
+    if (msg?.type !== "quotes" || !Array.isArray(msg.data)) return;
+
+    setWatchList((prevList) =>
+      prevList.map((item) => {
+        const update = msg.data.find(
+          (d) => d && String(d.instrument_token) === String(item.token)
+        );
+        if (!update) return item;
+
+        const ltp = parseFloat(update.last_traded_price);
+        const close = parseFloat(update.ohlc?.close || ltp);
+        debugger;
+        // ✅ Always use update.change if it's a number (even 0)
+        const change = !isNaN(parseFloat(update.change))
+          ? parseFloat(update.change)
+          : parseFloat((ltp - close).toFixed(2));
+
+        // ✅ Same logic for percent change
+        const changePercent = !isNaN(parseFloat(update.net_change_percentage))
+          ? parseFloat(update.net_change_percentage)
+          : close !== 0
+          ? parseFloat(((change / close) * 100).toFixed(2))
+          : 0;
+
+        return {
+          ...item,
+          ltp,
+          change,
+          changePercent,
+          ohlc: {
+            open: parseFloat(update.ohlc?.open) || item.ohlc?.open,
+            high: parseFloat(update.ohlc?.high) || item.ohlc?.high,
+            low: parseFloat(update.ohlc?.low) || item.ohlc?.low,
+            close,
+          },
+        };
+      })
+    );
   };
 
   const removeFromWatchList = async (symbol) => {
@@ -177,7 +184,6 @@ export default function useWatchList() {
     });
 
     if (confirmed) {
-      await deleteWatchSymbol(symbol);
       setWatchList((prev) => prev.filter((item) => item.symbol !== symbol));
       showToast({
         type: "success",
@@ -187,7 +193,40 @@ export default function useWatchList() {
     }
   };
 
+ 
+  useEffect(() => {
+  if (watchList.length > 0) {
+    localStorage.setItem("watchList", JSON.stringify(watchList));
+  }
+}, [watchList]);
+
+useEffect(() => {
+  const storedList = localStorage.getItem("watchList");
+  if (storedList) {
+    try {
+      const parsedList = JSON.parse(storedList);
+      setWatchList(parsedList);
+    } catch (err) {
+      console.error("Failed to parse watchList from localStorage", err);
+    }
+  }
+}, []);
+
+const handleBuy = (symbol) => {
+    console.log("Buy", symbol);
+    // Open buy modal or redirect to buy page here
+  };
+
+  // ✅ Sell handler
+  const handleSell = (symbol) => {
+    console.log("Sell", symbol);
+    // Open sell modal or redirect to sell page here
+  };
+
+
   return {
+    handleBuy,
+    handleSell,
     searchRef,
     searchTerm,
     setSearchTerm,
