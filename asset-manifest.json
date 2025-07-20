@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/myalgoapp/static/css/main.d739a3ab.css",
-    "main.js": "/myalgoapp/static/js/main.e820b119.js",
+    "main.css": "/myalgoapp/static/css/main.eba38878.css",
+    "main.js": "/myalgoapp/static/js/main.b222b356.js",
     "static/js/453.086af677.chunk.js": "/myalgoapp/static/js/453.086af677.chunk.js",
     "static/media/logo512-bg-remove.png": "/myalgoapp/static/media/logo512-bg-remove.7e767a1cad97ff72fb24.png",
     "index.html": "/myalgoapp/index.html",
-    "main.d739a3ab.css.map": "/myalgoapp/static/css/main.d739a3ab.css.map",
-    "main.e820b119.js.map": "/myalgoapp/static/js/main.e820b119.js.map",
+    "main.eba38878.css.map": "/myalgoapp/static/css/main.eba38878.css.map",
+    "main.b222b356.js.map": "/myalgoapp/static/js/main.b222b356.js.map",
     "453.086af677.chunk.js.map": "/myalgoapp/static/js/453.086af677.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.d739a3ab.css",
-    "static/js/main.e820b119.js"
+    "static/css/main.eba38878.css",
+    "static/js/main.b222b356.js"
   ]
 }
