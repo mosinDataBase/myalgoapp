@@ -1,5 +1,5 @@
-const BASE_URL = 'http://localhost:10000'; 
-//const BASE_URL = 'https://myalgoserver-n87u.onrender.com'; 
+//const BASE_URL = 'http://localhost:10000'; 
+const BASE_URL = 'https://myalgoserver-n87u.onrender.com'; 
 
 const URLS = {
   socketBase      : BASE_URL,
