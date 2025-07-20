@@ -1,15 +1,46 @@
-// src/components/MobileStockCard.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { MdDeleteOutline } from "react-icons/md";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
-const MobileStockCard = ({ stock, removeFromWatchList }) => {
+const MobileStockCard = ({
+  stock,
+  removeFromWatchList,
+  onAddToOrder,
+  onConfirm,
+  onChangeQty,
+  onChangePrice,
+  showToast,
+}) => {
   const [expanded, setExpanded] = useState(false);
   const cardRef = useRef(null);
+  const [qty, setQty] = useState(1);
+  const [price, setPrice] = useState(stock.ltp);
 
   const handleCardClick = (e) => {
     if (e.target.closest("button[data-action='delete']")) return;
     setExpanded((prev) => !prev);
+  };
+
+  const handleQtyChange = (e) => {
+    const value = parseInt(e.target.value);
+    setQty(value);
+    onChangeQty?.(stock.symbol, value);
+  };
+
+  const handlePriceChange = (e) => {
+    const value = parseFloat(e.target.value);
+    setPrice(value);
+    onChangePrice?.(stock.symbol, value);
+  };
+
+  const handleAdd = () => {
+    onAddToOrder?.(stock.symbol, qty, price);
+    showToast?.(`${stock.symbol} added to order.`);
+  };
+
+  const handleConfirm = () => {
+    onConfirm?.(stock.symbol, qty, price);
+    showToast?.(`${stock.symbol} confirmed.`);
   };
 
   useEffect(() => {
@@ -56,11 +87,12 @@ const MobileStockCard = ({ stock, removeFromWatchList }) => {
         </div>
       </div>
 
-      {/* Table-Like Expanded Details */}
+      {/* Expanded Section */}
       {expanded && (
-        <div className="mt-3 text-sm text-gray-800">
-          <div className="grid grid-cols-2 py-1 border-b">
-            <div className="font-medium">Change</div>
+        <div className="mt-3 text-sm text-gray-800 space-y-2">
+          {/* Details */}
+          <div className="grid grid-cols-2 gap-2">
+            <div>Change</div>
             <div
               className={`text-right ${
                 stock.change < 0 ? "text-red-600" : "text-green-600"
@@ -69,10 +101,8 @@ const MobileStockCard = ({ stock, removeFromWatchList }) => {
               {stock.change > 0 && "+"}
               {stock.change.toFixed(2)}
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 py-1 border-b">
-            <div className="font-medium">% Change</div>
+            <div>% Change</div>
             <div
               className={`text-right ${
                 stock.change < 0 ? "text-red-600" : "text-green-600"
@@ -81,26 +111,52 @@ const MobileStockCard = ({ stock, removeFromWatchList }) => {
               {stock.change > 0 && "+"}
               {stock.changePercent.toFixed(2)}%
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 py-1 border-b">
-            <div className="font-medium">Open</div>
+            <div>Open</div>
             <div className="text-right">{stock.ohlc.open || "-"}</div>
-          </div>
 
-          <div className="grid grid-cols-2 py-1 border-b">
-            <div className="font-medium">High</div>
+            <div>High</div>
             <div className="text-right">{stock.ohlc.high || "-"}</div>
-          </div>
 
-          <div className="grid grid-cols-2 py-1 border-b">
-            <div className="font-medium">Low</div>
+            <div>Low</div>
             <div className="text-right">{stock.ohlc.low || "-"}</div>
+
+            <div>Close</div>
+            <div className="text-right">{stock.ohlc.close || "-"}</div>
           </div>
 
-          <div className="grid grid-cols-2 py-1">
-            <div className="font-medium">Close</div>
-            <div className="text-right">{stock.ohlc.close || "-"}</div>
+          {/* Order Controls */}
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <input
+              type="number"
+              className="border rounded p-1"
+              value={qty}
+              min={1}
+              onChange={handleQtyChange}
+              placeholder="Qty"
+            />
+            <input
+              type="number"
+              className="border rounded p-1"
+              value={price}
+              onChange={handlePriceChange}
+              placeholder="Price"
+            />
+          </div>
+
+          <div className="flex justify-between mt-2">
+            <button
+              onClick={handleAdd}
+              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Add
+            </button>
+            <button
+              onClick={handleConfirm}
+              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              Confirm
+            </button>
           </div>
         </div>
       )}

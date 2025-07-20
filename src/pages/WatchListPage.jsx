@@ -26,8 +26,8 @@ const WatchListPage = () => {
     selectedStock,
     actionType,
     modalOpen,
-    quantity, 
-    setQuantity
+    quantity,
+    setQuantity,
   } = useWatchList();
 
   return (
@@ -172,101 +172,101 @@ const WatchListPage = () => {
         </table>
       </div>
 
-     {modalOpen && selectedStock && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-    <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative">
-      <button
-        onClick={closeModal}
-        className="absolute top-2 right-3 text-gray-600 hover:text-black text-xl"
-      >
-        <FiX size={24} />
-      </button>
+      {modalOpen && selectedStock && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative">
+            <button
+              onClick={closeModal}
+              className="absolute top-2 right-3 text-gray-600 hover:text-black text-xl"
+            >
+              <FiX size={24} />
+            </button>
 
-      <h3 className="text-xl font-semibold mb-4">
-        Confirm {actionType} Order
-      </h3>
+            <h3 className="text-xl font-semibold mb-4">
+              Confirm {actionType} Order
+            </h3>
 
-      <div className="space-y-2 text-sm">
-        <p>
-          <strong>Symbol:</strong> {selectedStock.symbol}
-        </p>
-        <p>
-          <strong>LTP:</strong> ₹{selectedStock.ltp?.toFixed(2) ?? "--"}
-        </p>
-        <p>
-          <strong>Change:</strong> ₹{selectedStock.change?.toFixed(2) ?? "--"}
-        </p>
-        <p>
-          <strong>% Change:</strong>{" "}
-          {selectedStock.changePercent?.toFixed(2) ?? "--"}%
-        </p>
-      </div>
+            <div className="space-y-2 text-sm">
+              <p>
+                <strong>Symbol:</strong> {selectedStock.symbol}
+              </p>
+              <p>
+                <strong>LTP:</strong> ₹{selectedStock.ltp?.toFixed(2) ?? "--"}
+              </p>
+              <p>
+                <strong>Change:</strong> ₹
+                {selectedStock.change?.toFixed(2) ?? "--"}
+              </p>
+              <p>
+                <strong>% Change:</strong>{" "}
+                {selectedStock.changePercent?.toFixed(2) ?? "--"}%
+              </p>
+            </div>
 
-      <div className="mt-4 space-y-3">
-        {/* Quantity input */}
-        <div>
-          <label className="block text-sm font-medium">Quantity</label>
-          <input
-            type="number"
-            min={1}
-            defaultValue={1}
-            
-            onChange={(e) => setQuantity(e.target.value)}
-            className="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
+            <div className="mt-4 space-y-3">
+              {/* Quantity input */}
+              <div>
+                <label className="block text-sm font-medium">Quantity</label>
+                <input
+                  type="number"
+                  min={1}
+                  defaultValue={1}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  className="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
 
-        {/* Price Type dropdown */}
-        <div>
-          <label className="block text-sm font-medium">Price Type</label>
-          <select
-            value={priceType}
-            onChange={(e) => setPriceType(e.target.value)}
-            className="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            <option value="Market">Market</option>
-            <option value="Limit">Limit</option>
-          </select>
-        </div>
+              {/* Price Type dropdown */}
+              <div>
+                <label className="block text-sm font-medium">Price Type</label>
+                <select
+                  value={priceType}
+                  onChange={(e) => setPriceType(e.target.value)}
+                  className="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                >
+                  <option value="Market">Market</option>
+                  <option value="Limit">Limit</option>
+                </select>
+              </div>
 
-        {/* Limit Price input (only shown when type = Limit) */}
-        {priceType === "Limit" && (
-          <div>
-            <label className="block text-sm font-medium">Limit Price</label>
-            <input
-              type="number"
-              value={limitPrice}
-              onChange={(e) => setLimitPrice(e.target.value)}
-              className="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="Enter limit price"
-            />
+              {/* Limit Price input (only shown when type = Limit) */}
+              {priceType === "Limit" && (
+                <div>
+                  <label className="block text-sm font-medium">
+                    Limit Price
+                  </label>
+                  <input
+                    type="number"
+                    value={limitPrice}
+                    onChange={(e) => setLimitPrice(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    placeholder="Enter limit price"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={closeModal}
+              >
+                Cancel
+              </button>
+              <button
+                className={`px-4 py-2 rounded text-white ${
+                  actionType === "Buy"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
+                onClick={handleConfirmAction}
+              >
+                Confirm {actionType}
+              </button>
+            </div>
           </div>
-        )}
-      </div>
-
-      <div className="mt-6 flex justify-end space-x-3">
-        <button
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          onClick={closeModal}
-        >
-          Cancel
-        </button>
-        <button
-          className={`px-4 py-2 rounded text-white ${
-            actionType === "Buy"
-              ? "bg-green-600 hover:bg-green-700"
-              : "bg-red-600 hover:bg-red-700"
-          }`}
-          onClick={handleConfirmAction}
-        >
-          Confirm {actionType}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-      
+        </div>
+      )}
 
       {/* ✅ CARD VIEW: Mobile Only */}
 
@@ -280,6 +280,11 @@ const WatchListPage = () => {
               key={index}
               stock={stock}
               removeFromWatchList={removeFromWatchList}
+              onAddToOrder={handleAddToOrder}
+              onConfirm={handleConfirmAction}
+              onChangeQty={handleQuantityChange}
+              onChangePrice={handlePriceChange}
+              showToast={showToast}
             />
           ))
         )}
