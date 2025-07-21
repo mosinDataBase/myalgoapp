@@ -154,7 +154,7 @@ export default function useWatchList() {
 
         const ltp = parseFloat(update.last_traded_price);
         const close = parseFloat(update.ohlc?.close || ltp);
-        debugger;
+      
         // ✅ Always use update.change if it's a number (even 0)
         const change = !isNaN(parseFloat(update.change))
           ? parseFloat(update.change)

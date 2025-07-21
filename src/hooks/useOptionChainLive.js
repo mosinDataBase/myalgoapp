@@ -63,7 +63,7 @@ export default function useOptionChainLive({selectedIndexSymbol, setLiveQuotes})
     });
 
     socket.on("disconnect", () => {
-      console.log("❌ Option chain socket disconnected");
+      console.log("❌ Option chain socket disconnected ");
     });
 
     return () => {
@@ -75,6 +75,9 @@ export default function useOptionChainLive({selectedIndexSymbol, setLiveQuotes})
           socketRef.current = null;
         }
 
+        const socket = io(URLS.socketBase, { transports: ["websocket"] });
+        socketRef.current = socket;
+        liveMapRef.current = {};
         // Also inform backend to clean up subscriptions
         fetch(URLS.unsubscribeOptions, {
           method: "POST",

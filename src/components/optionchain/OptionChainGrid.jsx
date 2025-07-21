@@ -15,6 +15,7 @@ const STRIKE_STEP_MAP = {
   MIDCPNIFTY: 75,
   // default fallback
   DEFAULT: 50
+
 };
 
 const stepSize = STRIKE_STEP_MAP[selectedIndex.toUpperCase()] || STRIKE_STEP_MAP.DEFAULT;

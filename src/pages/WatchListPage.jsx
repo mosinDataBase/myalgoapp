@@ -281,12 +281,11 @@ const WatchListPage = () => {
               key={index}
               stock={stock}
               removeFromWatchList={removeFromWatchList}
-              onAddToOrder={(symbol, qty, price) => {
+              onAddToOrder={(symbol, qty, price, type) => {
                 setQuantity(qty);
                 setLimitPrice(price);
-                openModal(symbol, "Buy"); // You can add a way to choose Buy/Sell if needed
+                openModal(symbol, type); // Buy or Sell passed
               }}
-              onConfirm={handleConfirmAction}
               onChangeQty={setQuantity}
               onChangePrice={setLimitPrice}
               showToast={showToast}

@@ -3,19 +3,25 @@ import { Switch } from "@headlessui/react";
 
 import { FaBars } from "react-icons/fa";
 import { useIndices } from "../contexts/IndicesContext";
+import IndexTickerList from "./indexTickerVal/IndexTicker";
 
 const Header = ({ toggleSidebar, userData, handleLogout }) => {
-  
   const [tradingStarted, setTradingStarted] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const closeTimeoutRef = useRef(null);
 
   const { indicesContext } = useIndices();
 
+
   const toggleUserMenu = () => {
     setUserMenuOpen(!userMenuOpen);
   };
-
+  const indexSymbolMap = {
+    NIFTY: "26000",
+    BANKNIFTY: "26009",
+    FINNIFTY: "26037",
+    MIDCPNIFTY: "26074",
+  };
   const handleMouseEnter = () => {
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
@@ -75,41 +81,10 @@ const Header = ({ toggleSidebar, userData, handleLogout }) => {
         </button>
 
         {/* Indices - horizontal scroll on small screens */}
-        <div className="flex items-center gap-4 overflow-x-auto max-w-full scrollbar-hide pl-2">
-          {["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY"].map((symbol) => {
-            const index = indicesContext?.find((item) => item.ts === symbol);
-            const isPositive = parseFloat(index?.nc) > 0;
-            const changePercent = parseFloat(index?.nc || 0).toFixed(2);
-            const lastTradedPrice = parseFloat(index?.ltp || 0).toFixed(2);
-
-            return (
-              <div
-                key={symbol}
-                className="flex flex-col min-w-[100px] text-xs font-medium"
-              >
-                <span className="text-gray-800 uppercase font-semibold text-sm">
-                  {symbol}
-                </span>
-
-                <span className="text-[13px]">
-                  {index ? lastTradedPrice : "--"}
-                </span>
-
-                <span
-                  className={`text-[11px] ${
-                    isPositive ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {index
-                    ? `${isPositive ? "+" : ""}${(
-                        lastTradedPrice - index.c
-                      ).toFixed(2)} (${changePercent}%)`
-                    : "0.00%"}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+        <IndexTickerList
+          indicesContext={indicesContext}
+          indexSymbolMap={indexSymbolMap}
+        />
       </div>
 
       {/* Right side controls */}

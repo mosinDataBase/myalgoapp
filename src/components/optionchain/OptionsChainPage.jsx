@@ -10,6 +10,8 @@ export default function OptionsChainPage() {
   const [optionData, setOptionData] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState("Nifty");
   const spotPriceRef = useRef(spotPrice);
+  const lastValidIndicesRef = useRef([]);
+
   const {
     optionChain,
     liveQuotes,
@@ -32,22 +34,47 @@ export default function OptionsChainPage() {
     setSelectedExpiry(expiry); // updates expiry and triggers effect inside hook
   };
 
-  useEffect(() => {
-    
-    if (!indicesContext || !Array.isArray(indicesContext)) return;
-    setOptionData(indicesContext)
-   localStorage.setItem("indicesContext", JSON.stringify(indicesContext));
-    const selected = indicesContext.find(
-      (item) => item.ts?.toLowerCase() === selectedIndex.toLowerCase()
-    );
+  const indicesList = ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY"];
+   const indexSymbolMap = {
+      NIFTY: "26000",
+      BANKNIFTY: "26009",
+      FINNIFTY: "26037",
+      MIDCPNIFTY: "26074",
+    };
 
-    if (selected) {
-      const ltp = parseFloat(selected.ltp);
-      const change = parseFloat(selected.cng);
-      setSpotPrice(ltp);
-      setSpotChange(change);
-    }
-  }, [indicesContext, selectedIndex]);
+useEffect(() => {
+  
+   if (!indicesContext || !Array.isArray(indicesContext)) return;
+  if (indicesContext && indicesContext.length && selectedIndex) {
+    const selectedKey = selectedIndex.toLowerCase();
+    lastValidIndicesRef.current = indicesContext;
+
+    const strikeData = Object.entries(indexSymbolMap)
+      .filter(([key]) => key.toLowerCase() === selectedKey)
+      .map(([key, symbol]) => {
+        
+        const index =
+          indicesContext.find((item) => item.ts === key) ||
+          indicesContext.find((item) => item.tk?.toString() === symbol);
+
+          setSpotPrice(index?.ltp);
+          //setSpotChange(strikeData);
+          //setOptionData(indicesContext);
+
+        return {
+          key,
+          tk: index?.tk ?? null,
+          ltp: index?.ltp ?? null,
+        };
+      });
+      
+    console.log("Filtered strikeData:", strikeData);
+    console.log("spotPrice:", spotPrice);
+  }
+}, [indicesContext, selectedIndex]);
+
+
+
 
   return (
     <div className="flex flex-col h-full">

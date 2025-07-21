@@ -1,27 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import useMainIndex from "../hooks/useMainIndex";
-import { showToast } from "../utils/alerts";
 import axios from "axios";
 import URLS from "../config/apiUrls";
-import { IndicesProvider, useIndices } from "../contexts/IndicesContext"; // ✅ import
+import { IndicesProvider } from "../contexts/IndicesContext"; // ✅ import
+import { showToast } from "../utils/alerts";
 
 const DashboardLayoutContent = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { indices } = useMainIndex();
-  const { setIndicesContext } = useIndices(); // ✅ context setter
   const navigate = useNavigate();
 
   const dataString = sessionStorage.getItem("data");
   const userData = dataString ? JSON.parse(dataString) : null;
-
-  useEffect(() => {
-    if (indices?.length) {
-      setIndicesContext(indices);
-    }
-  }, [indices]);
 
   const handleLogout = async () => {
     try {
@@ -85,7 +76,6 @@ const DashboardLayoutContent = ({ children }) => {
         <Header
           handleLogout={handleLogout}
           userData={userData}
-          indices={indices}
           toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         />
 
@@ -100,10 +90,10 @@ const DashboardLayoutContent = ({ children }) => {
   );
 };
 
-// ✅ Wrap the actual layout inside the provider
+// ✅ Global provider here
 const DashboardLayout = ({ children }) => (
   <IndicesProvider>
-    <DashboardLayoutContent children={children} />
+    <DashboardLayoutContent>{children}</DashboardLayoutContent>
   </IndicesProvider>
 );
 

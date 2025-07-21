@@ -13,7 +13,7 @@ export default function OptionChainHeader({
 
   return (
     <div
-      style={{ top: "-22px", position: "relative" }}
+      style={{ top: "-5px", position: "relative" }}
       className="sticky top-0 z-50 bg-gray-900"
     >
       <div className="flex items-center justify-between px-4 py-1.5 bg-gray-800 border-b border-gray-700 shadow-md">
