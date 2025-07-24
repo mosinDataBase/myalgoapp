@@ -2,21 +2,20 @@
 
 export default function StrikeRow({ data, liveQuotes, isSpotRow = false, strikeDiff = 0 }) {
 
-
-
+  console.log("data ins strike row:",data)
 
   // Now use `stikedata` in place of `indicesContext`
 
   if (!data) return null;
 
-  const { ltp } = data;
+  const { strike } = data;
 
   const extractStrike = (ts) => {
     const match = ts?.match(/(\d+)(CE|PE)$/);
     return match ? parseFloat(match[1]) : null;
   };
 
-  const strike = parseFloat(ltp);
+  const strik = parseFloat(strike);
   if (isNaN(strike)) return null;
 
   const ceQuote = liveQuotes?.find(
@@ -62,7 +61,7 @@ export default function StrikeRow({ data, liveQuotes, isSpotRow = false, strikeD
 
       <div className={`text-red-400 py-1 ${ceBg}`}>{format(callLtp)}</div>
 
-      <div className={`font-bold text-white py-1 ${strikeBg}`}>{ltp}</div>
+      <div className={`font-bold text-white py-1 ${strikeBg}`}>{strike}</div>
 
       <div className={`text-green-400 py-1 ${peBg}`}>{format(putLtp)}</div>
 

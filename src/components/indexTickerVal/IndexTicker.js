@@ -46,9 +46,12 @@ export default function IndexTickerList({ indicesContext, indexSymbolMap }) {
           (item) => item.tk?.toString() === indexSymbolMap[symbol]
         );
 
+        
+        
       // If index exists, update the cache
       if (index) {
         previousDataRef.current[symbol] = index;
+        localStorage.setItem(symbol.toLocaleUpperCase(),index?.ltp)
       }
 
       return {

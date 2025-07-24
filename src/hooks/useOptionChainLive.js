@@ -3,37 +3,34 @@ import { io } from "socket.io-client";
 import URLS from "../config/apiUrls";
 import { showToast } from "../utils/alerts";
 
-export default function useOptionChainLive({selectedIndexSymbol, setLiveQuotes}) {
+export default function useOptionChainLive({ selectedIndexSymbol, setLiveQuotes }) {
   const socketRef = useRef(null);
   const liveMapRef = useRef({});
-  const mobile = useRef(localStorage.getItem("mobileNumber"));
+  const mobileNo = useRef(localStorage.getItem("mobileNumber"));
+  console.log(mobileNo)
+  const reconnectAttempts = useRef(0);
+  const reconnectMaxAttempts = 5;
 
-  useEffect(() => {
-    if (!selectedIndexSymbol || !mobile.current) return;
+  const connectSocket = () => {
+    const socket = io(URLS.socketBase, {
+      transports: ["websocket"],
+      reconnection: true,
+      reconnectionAttempts: reconnectMaxAttempts,
+      reconnectionDelay: 1000, // first retry after 1s
+      reconnectionDelayMax: 5000, // cap delay at 5s
+    });
 
-    // Cleanup existing socket if already connected
-    if (socketRef.current) {
-      try {
-        socketRef.current.disconnect();
-      } catch (_) {}
-      socketRef.current = null;
-    }
-
-    // Initialize fresh socket
-    const socket = io(URLS.socketBase, { transports: ["websocket"] });
     socketRef.current = socket;
-
-    liveMapRef.current = {}; // Reset quotes map on new symbol
-    let unsubscribeTimer = null;
+    liveMapRef.current = {};
 
     socket.on("connect", () => {
       console.log("🔗 Option chain socket connected");
-      socket.emit("register_mobile", { mobile: mobile.current });
+      reconnectAttempts.current = 0;
+      socket.emit("register_mobile", { mobile: mobileNo.current });
     });
 
-    socket.on("option_quotes_update", (payload) => { 
+    socket.on("option_data_update", (payload) => {debugger
       try {
-   
         if (!Array.isArray(payload?.data)) return;
 
         let hasUpdates = false;
@@ -62,29 +59,51 @@ export default function useOptionChainLive({selectedIndexSymbol, setLiveQuotes})
       }
     });
 
-    socket.on("disconnect", () => {
-      console.log("❌ Option chain socket disconnected ");
+    socket.on("disconnect", (reason) => {
+      console.log("❌ Option chain socket disconnected: ", reason);
     });
 
-    return () => {
-      // Delay unsubscribe to allow server to finish sending any last packets
-      unsubscribeTimer = setTimeout(() => {
-        if (socketRef.current) {
-          socketRef.current.emit("unsubscribe_all", { mobile: mobile.current });
-          socketRef.current.disconnect();
-          socketRef.current = null;
-        }
+    socket.io.on("option_data_update", () => {
+      reconnectAttempts.current += 1;
+      console.log(`🔁 Reconnection attempt #${reconnectAttempts.current}`);
+    });
 
-        const socket = io(URLS.socketBase, { transports: ["websocket"] });
-        socketRef.current = socket;
-        liveMapRef.current = {};
-        // Also inform backend to clean up subscriptions
-        fetch(URLS.unsubscribeOptions, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mobile: mobile.current }),
-        }).catch((err) => console.warn("Backend unsubscribe failed:", err));
-      }, 1000); // 🔁 Add a 1 second grace period
+    socket.io.on("option_data_update", () => {
+      console.warn("❌ Reconnection failed. Retrying manually in 5 seconds...");
+      setTimeout(() => {
+        if (reconnectAttempts.current < reconnectMaxAttempts) {
+          console.log("🔁 Manual reconnection attempt...");
+          connectSocket();
+        }
+      }, 5000);
+    });
+  };
+
+  useEffect(() => {
+    if (!selectedIndexSymbol || !mobileNo.current) return;
+
+    if (socketRef.current) {
+      try {
+        socketRef.current.disconnect();
+      } catch (_) {}
+      socketRef.current = null;
+    }
+
+    connectSocket(); // 🔌 Initial connection
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.emit("unsubscribe_all", { mobile: mobileNo.current });
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+
+      // Also inform backend to clean up
+      fetch(URLS.unsubscribeOptions, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile: mobileNo.current }),
+      }).catch((err) => console.warn("Backend unsubscribe failed:", err));
     };
   }, [selectedIndexSymbol]);
 }

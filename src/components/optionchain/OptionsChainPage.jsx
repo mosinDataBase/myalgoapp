@@ -20,6 +20,7 @@ export default function OptionsChainPage() {
     setSelectedExpiry,
     spotData,
     loading,
+    
     fetchOptionChain,
   } = useOptionChain(selectedIndex);
 
@@ -34,6 +35,28 @@ export default function OptionsChainPage() {
     setSelectedExpiry(expiry); // updates expiry and triggers effect inside hook
   };
 
+// utils/generateDummyOptionChain.js
+function generateOptionChainStrickessteps(centerStrike, stepSize = 50, countBefore = 50, countAfter = 50) {
+  const data = [];
+  const strikePriceStep = [];
+
+  const totalStrikes = countBefore + countAfter + 1;
+
+  for (let i = -countBefore; i <= countAfter; i++) {
+    const strike = centerStrike + i * stepSize;
+    const strikeStr = strike.toString();
+
+    // Add CE and PE quotes
+    strikePriceStep.push({
+      strikeStr :`${strikeStr}`
+    });
+  }
+
+  return  strikePriceStep;
+}
+
+
+
   const indicesList = ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY"];
    const indexSymbolMap = {
       NIFTY: "26000",
@@ -43,7 +66,8 @@ export default function OptionsChainPage() {
     };
 
 useEffect(() => {
-  
+
+      
    if (!indicesContext || !Array.isArray(indicesContext)) return;
   if (indicesContext && indicesContext.length && selectedIndex) {
     const selectedKey = selectedIndex.toLowerCase();
@@ -56,8 +80,10 @@ useEffect(() => {
         const index =
           indicesContext.find((item) => item.ts === key) ||
           indicesContext.find((item) => item.tk?.toString() === symbol);
-
+          
           setSpotPrice(index?.ltp);
+          // Set dummy option data here
+        
           //setSpotChange(strikeData);
           //setOptionData(indicesContext);
 

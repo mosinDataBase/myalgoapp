@@ -3,23 +3,57 @@ import StrikeRow from "./StrikeRow";
 import SpotPriceBar from "./SpotPriceBar";
 import BottomBar from "./BottomBar";
 
-export default function OptionChainGrid({ data = [], selectedIndex,liveQuotes = [], spotChange, spotPrice }) {
+export default function OptionChainGrid({
+  data = [],
+  selectedIndex,
+  liveQuotes = [],
+  spotChange,
+  spotPrice,
+}) {
   const spotRowRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const scrollTimeoutRef = useRef(null);
-const STRIKE_STEP_MAP = {
-  NIFTY: 50,
-  BANKNIFTY: 100,
-  FINNIFTY: 50,
-  MIDCPNIFTY: 75,
-  // default fallback
-  DEFAULT: 50
 
-};
+  function generateOptionChainStrikesSteps(
+    centerStrikeStr,
+    stepSize = 50,
+    countBefore = 10,
+    countAfter = 10
+  ) {
+    const centerStrike = parseInt(centerStrikeStr, 10); // Convert string to integer
 
-const stepSize = STRIKE_STEP_MAP[selectedIndex.toUpperCase()] || STRIKE_STEP_MAP.DEFAULT;
-const roundedSpot = Math.round(spotPrice / stepSize) * stepSize;
+    const strikes = [];
+
+    for (let i = -countBefore; i <= countAfter; i++) {
+      strikes.push(centerStrike + i * stepSize);
+    }
+
+    return strikes;
+  }
+
+  const STRIKE_STEP_MAP = {
+    NIFTY: 50,
+    BANKNIFTY: 100,
+    FINNIFTY: 50,
+    MIDCPNIFTY: 75,
+    // default fallback
+    DEFAULT: 50,
+  };
+  ;
+  
+  const stepSize =
+    STRIKE_STEP_MAP[selectedIndex?.toUpperCase?.()] || STRIKE_STEP_MAP.DEFAULT;
+  const roundedSpot = Math.round(spotPrice / stepSize) * stepSize;
+
+  const generatedData = generateOptionChainStrikesSteps(
+    roundedSpot,
+    stepSize,
+    40,
+    40
+  ).map((strike) => ({
+    strike: strike.toString(),
+  }));
 
   // Auto scroll on load or re-enable
   useEffect(() => {
@@ -54,7 +88,9 @@ const roundedSpot = Math.round(spotPrice / stepSize) * stepSize;
   }, []);
 
   if (!Array.isArray(data)) {
-    return <div className="text-center text-red-500">No option data available.</div>;
+    return (
+      <div className="text-center text-red-500">No option data available.</div>
+    );
   }
 
   return (
@@ -65,22 +101,19 @@ const roundedSpot = Math.round(spotPrice / stepSize) * stepSize;
         ref={scrollContainerRef}
         className="overflow-y-auto h-[calc(100vh-160px)]"
       >
-        {data.map((row, index) => {
+        {generatedData.map((row, index) => {
           const isSpotRow = parseFloat(row.strike) === roundedSpot;
           const strikeDiff = parseFloat(row.strike) - roundedSpot;
 
           return (
             <React.Fragment key={index}>
               {isSpotRow && (
-                <SpotPriceBar
-                  spotPrice={spotPrice}
-                  spotChange={spotChange}
-                />
+                <SpotPriceBar spotPrice={spotPrice} spotChange={spotChange} />
               )}
               <div ref={isSpotRow ? spotRowRef : null}>
                 <StrikeRow
                   data={row}
-                  liveQuotes ={liveQuotes}
+                  liveQuotes={liveQuotes}
                   strikeDiff={strikeDiff}
                   isSpotRow={isSpotRow}
                 />

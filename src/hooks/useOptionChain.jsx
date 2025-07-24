@@ -12,7 +12,10 @@ export default function useOptionChain(selectedIndexSymbol) {
   const mobileNumber = localStorage.getItem("mobileNumber");
   const [expiries, setExpiries] = useState([]);
   const [selectedExpiry, setSelectedExpiry] = useState(null); // 🆕 Add expiry state
-  const strikePrice = 25953;
+  
+  const indexSym = selectedIndexSymbol.toUpperCase();
+  //const strikePrice = localStorage.getItem(indexSym);
+  const strikePrice = "25034"
 
   const fetchExpiries = useCallback(async (symbol = selectedIndexSymbol) => {
     try {
@@ -48,7 +51,7 @@ export default function useOptionChain(selectedIndexSymbol) {
         segment: "nse_fo",
         expiry, // 🆕 Send expiry
       });
-      debugger
+      
       const livetokens = res?.data?.tokens;
      
        localStorage.setItem("livetokens", JSON.stringify(livetokens));

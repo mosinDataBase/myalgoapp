@@ -127,13 +127,13 @@ export default function useWatchList() {
     // ✅ Ensure socket is connected and listening
     if (!socketRef.current) {
       socketRef.current = io(URLS.socketBase, { transports: ["websocket"] });
-
+      console.log("mobile.current",mobile.current)
       socketRef.current.on("connect", () => {
         console.log("🔗 Option chain socket connected");
         socketRef.current.emit("register_mobile", { mobile: mobile.current });
       });
 
-      socketRef.current.on("quotes_quotes_update", (msg) => {
+      socketRef.current.on("quotes_data_update", (msg) => {
         handleQuoteUpdate(msg);
       });
     }
